@@ -4,11 +4,14 @@ This document tracks overall progress, phase milestones, blockers, and known iss
 
 ---
 
-## Current Status: Phase 2 (Core Crawler & Technical SEO Engine)
+## Current Status: PAUSED (Phase 1 Complete, Phase 2 Foundation Staged)
 
-- **Overall Health**: 🟢 On Track
-- **Current Phase**: Phase 2 (In Progress)
-- **Completed Phases**: Phase 0 (Planning), Phase 1 (Landscape Study & Reverse Engineering)
+- **Overall Health**: 🟢 On Track & Cleanly Saved
+- **Current Phase**: Paused at the onset of Phase 2 (Core Crawler & Technical SEO)
+- **Completed Phases**: 
+  - **Phase 0: Planning & Repository Setup** (100% Complete)
+  - **Phase 1: Landscape Study & Reverse Engineering (`learn.md`)** (100% Complete)
+- **Next Phase on Resume**: Phase 2 (Core Crawler & Technical SEO Engine completion)
 - **Blocked Items**: None
 
 ---
@@ -22,7 +25,7 @@ This document tracks overall progress, phase milestones, blockers, and known iss
 - [x] Five living documents established: `plan.md`, `learn.md`, `DECISIONS.md`, `PROGRESS.md`, `docs/LEARNING-NOTES.md`
 - [x] Open source compliance document: `NOTICE.md`
 - [x] Architecture specification drafted in `plan.md`
-- [x] **GATE**: Approved by user
+- [x] **GATE**: Approved
 
 ---
 
@@ -37,17 +40,23 @@ This document tracks overall progress, phase milestones, blockers, and known iss
 - [x] Differentiated GEO documented facts vs. plausible heuristics vs. marketing folklore
 - [x] Added ADR 0007 (AI Bot Triad: Training vs. Search vs. User-Triggered) to `DECISIONS.md`
 - [x] Added Concepts 6, 7, and 8 to `docs/LEARNING-NOTES.md`
-- [x] **GATE**: Approved by user
+- [x] **GATE**: Phase 1 Fully Completed & Documented
 
 ---
 
-### [ ] Phase 2: Core Crawler & Technical SEO Engine
-- [ ] Asynchronous polite crawler (`httpx`, RFC 9309 robots.txt parser, sitemap parser, link graph)
-- [ ] Selective Playwright rendering engine (Rendered DOM & screenshot capture)
-- [ ] Pluggable check runner framework (`BaseCheck`, `Finding`, `CheckRegistry`)
+### [ ] Phase 2: Core Crawler & Technical SEO Engine (PAUSED / STAGED)
+- [x] Core data models created (`models/finding.py`, `models/snapshot.py`, `models/audit.py`)
+- [x] URL normalizer & deduplicator implemented (`crawler/normalizer.py`)
+- [x] SSRF security filter implemented (`crawler/ssrf.py`)
+- [x] RFC 9309 robots.txt parser with AI bot evaluator implemented (`crawler/robots.py`)
+- [x] Recursive XML sitemap & index parser implemented (`crawler/sitemap.py`)
+- [x] Directed internal link graph & orphan detector implemented (`crawler/graph.py`)
+- [x] Selective Playwright headless renderer implemented (`crawler/renderer.py`)
+- [x] Asynchronous polite crawler loop implemented (`crawler/engine.py`)
+- [x] Pluggable check framework base class implemented (`checks/base.py`)
 - [ ] Implement Technical SEO check suite (`TECH-*`)
-- [ ] CLI commands: `auditiq crawl`, `auditiq audit --layers tech`
-- [ ] Unit & fixture-based integration tests
+- [ ] Connect CLI commands: `auditiq crawl`, `auditiq audit --layers tech`
+- [ ] Comprehensive unit & integration tests
 - [ ] **GATE**: Validation on 5 benchmark sites matching industry standards
 - [ ] Asynchronous polite crawler (`httpx`, RFC 9309 robots.txt parser, sitemap parser, link graph)
 - [ ] Selective Playwright rendering engine (Rendered DOM & screenshot capture)
