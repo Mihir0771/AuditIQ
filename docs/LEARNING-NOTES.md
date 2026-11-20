@@ -121,3 +121,64 @@ class BaseCheck(ABC):
 
 ### The Analogy
 Think of a game console like a Nintendo Switch. The console itself (AuditIQ Core) provides power, display, and controls. Each game is a separate cartridge (Check Plugin). You can plug in a new cartridge or remove an old one without soldering anything inside the console.
+
+---
+
+## 6. The AI Bot Triad: Training vs. Search vs. User-Triggered
+
+### What it is
+AI vendors operate distinct web crawlers with completely different goals:
+- **Training Bots** (`GPTBot`, `ClaudeBot`): Ingest billions of web pages to train future foundation models.
+- **Search Bots** (`OAI-SearchBot`, `PerplexityBot`): Crawl the web to build a fresh search index so when a user asks a question, the AI can cite live sources.
+- **User-Triggered Fetchers** (`ChatGPT-User`, `Claude-Web`): Fetch a specific link on-demand only when a user explicitly pastes a URL in a chat conversation.
+
+### Why it matters
+Many webmasters think "blocking AI" means putting `User-agent: GPTBot Disallow: /` in their robots.txt. If an audit tool flags this as a critical SEO error, the agency looks foolish because blocking training bots is often an intentional legal/copyright choice! The real error is blocking `OAI-SearchBot` or `PerplexityBot`, which prevents the site from ever being cited as a source in AI answers.
+
+### How it works
+AuditIQ evaluates robots.txt rules separately for each of the three categories. It informs the user: *"You have blocked model training (copyright protection intact), but you have allowed AI search indexing (citation visibility preserved)."*
+
+### The Analogy
+- A **Training Bot** is a student reading library books to prepare for medical school next year.
+- A **Search Bot** is a journalist looking up current breaking news to write tomorrow's morning article.
+- A **User-Triggered Fetcher** is a friend you asked to open a specific webpage and read a recipe to you over the phone.
+
+---
+
+## 7. Simhash & Locality-Sensitive Hashing (LSH)
+
+### What it is
+A cryptographic hash (like MD5 or SHA-256) has the property that changing a single comma completely changes the entire hash output (avalanche effect).
+**Simhash**, by contrast, is a **locality-sensitive hash**: if two documents share 90% of the same words, their 64-bit Simhash values will differ by only a few bits!
+
+### Why it matters
+Search engines penalize websites that publish dozens of near-identical pages (keyword cannibalization or boilerplate spam). Comparing every page against every other page word-for-word takes $O(N^2 \times \text{words})$ time, which is too slow. With Simhash, comparing two pages takes an instant bitwise XOR operation (`bin(hash1 ^ hash2).count('1')`).
+
+### How it works
+1. Tokenize the page text into words and compute token frequencies.
+2. Hash each word into a 64-bit integer.
+3. Form a 64-dimensional accumulator vector. For each bit position, add the word weight if the bit is 1, subtract it if 0.
+4. Convert the vector into a final 64-bit fingerprint: 1 if positive, 0 if negative.
+5. If the Hamming distance between two page fingerprints is $\le 3$, they are >85% identical.
+
+### The Analogy
+Imagine regular hashing is like taking a fingerprint: a papercut changes the print entirely. Simhash is like taking a blurry photograph from 50 feet away: even if someone changes their shirt, you can still immediately tell it's the exact same person.
+
+---
+
+## 8. Inverted Pyramid Structure (Answer-First Content)
+
+### What it is
+A journalistic writing principle where the most essential conclusion, direct answer, or core takeaway is presented in the very first paragraph, followed by supporting details, background context, and examples.
+
+### Why it matters
+LLM generative answer engines (ChatGPT, Google AI Overviews, Perplexity) prioritize content that can be extracted cleanly as a direct answer. When an LLM scans a page to answer *"How much does a commercial roof cost?"*, a page that opens with *"Commercial roof replacement typically costs \$5 to \$12 per square foot..."* is dramatically more likely to be quoted than a page that rambles for 800 words about the history of roofing materials before stating the price.
+
+### How it works
+AuditIQ evaluates the first 150 words of body text on informational pages, checking for direct answers, definition phrases ("is a", "refers to"), concrete numerical metrics, and question-answering alignment with the page title.
+
+### The Analogy
+Imagine walking up to an information desk at an airport and asking: *"What gate is flight 402?"*
+- **Bad structure**: The agent tells you the history of Boeing and the weather in Chicago before finally telling you Gate B12.
+- **Answer-first structure**: The agent says *"Gate B12, boarding in 20 minutes"* and then hands you the map.
+

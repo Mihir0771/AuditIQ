@@ -82,3 +82,17 @@ All significant technical, architectural, and design decisions are recorded here
   3. *BYOK with pre-run cost estimation and budget safety cap*: Calculates estimated tokens/cost based on prompt count and runs; requires confirmation if cost exceeds threshold; fails soft to "Not measured" if keys are missing.
 - **Decision**: Implement BYOK architecture with strict pre-run cost estimators and configurable budget caps (`AUDITIQ_MAX_BUDGET_USD_PER_AUDIT`).
 - **Reasoning**: Complete financial safety and transparency.
+
+---
+
+## ADR 0007: AI Bot Classification Triad (Training vs. Search vs. User-Triggered)
+- **Date**: 2026-11-21
+- **Status**: Accepted
+- **Context**: Phase 1 empirical benchmarks (e.g. TechCrunch) revealed that publishers actively block model training bots (GPTBot, ClaudeBot) to protect copyright, while intentionally allowing search/indexing bots (OAI-SearchBot, PerplexityBot) for live citations. Treating all AI user-agents as a homogeneous block produces severe false positives.
+- **Options Considered**:
+  1. *Binary AI bot evaluation*: Flag any Disallow on an AI user-agent as an error.
+  2. *Vendor-level grouping*: Group rules by OpenAI, Anthropic, Google.
+  3. *Intent-based Triad*: Separate bots into Training, Search/Index, and User-Triggered.
+- **Decision**: Classify all bots in `config/ai_bots.yaml` into three strict operational types: `training`, `search`, and `user`.
+- **Reasoning**: Blocking training bots is a legitimate, common business defense that does NOT harm generative search visibility. Blocking search bots (OAI-SearchBot, PerplexityBot) directly destroys live generative citations. Differentiating them is essential for agency credibility.
+

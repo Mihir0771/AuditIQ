@@ -4,10 +4,11 @@ This document tracks overall progress, phase milestones, blockers, and known iss
 
 ---
 
-## Current Status: Phase 0 (Planning & Repository Setup)
+## Current Status: Phase 2 (Core Crawler & Technical SEO Engine)
 
 - **Overall Health**: 🟢 On Track
-- **Current Phase**: Phase 0 (Planning)
+- **Current Phase**: Phase 2 (In Progress)
+- **Completed Phases**: Phase 0 (Planning), Phase 1 (Landscape Study & Reverse Engineering)
 - **Blocked Items**: None
 
 ---
@@ -21,21 +22,33 @@ This document tracks overall progress, phase milestones, blockers, and known iss
 - [x] Five living documents established: `plan.md`, `learn.md`, `DECISIONS.md`, `PROGRESS.md`, `docs/LEARNING-NOTES.md`
 - [x] Open source compliance document: `NOTICE.md`
 - [x] Architecture specification drafted in `plan.md`
-- [ ] **GATE**: User review and approval of `plan.md`
+- [x] **GATE**: Approved by user
 
 ---
 
-### [ ] Phase 1: Landscape Study & Reverse Engineering (`learn.md`)
-- [ ] Select and study ≥6 open-source and reference tools (GEO Optimizer, OranGEO, geo-audit, Lighthouse, Crawlee, extruct, Screaming Frog output)
-- [ ] Define 5 diverse benchmark sites in `research/benchmarks.md`
-- [ ] Execute tools against benchmarks and record outputs in `research/outputs/`
-- [ ] Synthesize findings in `learn.md` (gap analysis, check catalogue expansion, bot taxonomy)
-- [ ] Revise `plan.md` based on real-world findings
-- [ ] **GATE**: User review and approval of `learn.md` and updated `plan.md`
+### [x] Phase 1: Landscape Study & Reverse Engineering (`learn.md`)
+- [x] Studied 10 tools & frameworks (GEO Optimizer, OranGEO, GetCito, geo-audit, Lighthouse, Crawlee, advertools, extruct, Screaming Frog, Profound/Peec AI)
+- [x] Defined 5 diverse benchmark sites in `research/benchmarks.md`
+- [x] Executed live empirical benchmark runs across all 5 testbeds, saving structured output to `research/outputs/`
+- [x] Documented master check catalogue (62 checks across 4 layers)
+- [x] Analyzed scoring approaches (simple additive vs. deductive vs. log-normal vs. weighted layer aggregation)
+- [x] Detailed gap analysis and competitive advantages in `learn.md`
+- [x] Verified AI crawler taxonomy table with vendor references (late 2026 docs)
+- [x] Differentiated GEO documented facts vs. plausible heuristics vs. marketing folklore
+- [x] Added ADR 0007 (AI Bot Triad: Training vs. Search vs. User-Triggered) to `DECISIONS.md`
+- [x] Added Concepts 6, 7, and 8 to `docs/LEARNING-NOTES.md`
+- [x] **GATE**: Approved by user
 
 ---
 
 ### [ ] Phase 2: Core Crawler & Technical SEO Engine
+- [ ] Asynchronous polite crawler (`httpx`, RFC 9309 robots.txt parser, sitemap parser, link graph)
+- [ ] Selective Playwright rendering engine (Rendered DOM & screenshot capture)
+- [ ] Pluggable check runner framework (`BaseCheck`, `Finding`, `CheckRegistry`)
+- [ ] Implement Technical SEO check suite (`TECH-*`)
+- [ ] CLI commands: `auditiq crawl`, `auditiq audit --layers tech`
+- [ ] Unit & fixture-based integration tests
+- [ ] **GATE**: Validation on 5 benchmark sites matching industry standards
 - [ ] Asynchronous polite crawler (`httpx`, RFC 9309 robots.txt parser, sitemap parser, link graph)
 - [ ] Selective Playwright rendering engine (Rendered DOM & screenshot capture)
 - [ ] Pluggable check runner framework (`BaseCheck`, `Finding`, `CheckRegistry`)
