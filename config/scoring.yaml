@@ -1,0 +1,35 @@
+# AuditIQ Scoring Rubric Configuration
+# Versioned to ensure historical audit comparisons remain mathematically valid.
+
+scoring_version: "2026.1"
+
+layer_weights:
+  technical: 0.25
+  content: 0.20
+  geo_readiness: 0.25
+  live_visibility: 0.30
+
+# Multipliers applied to individual check deductions based on severity
+severity_multipliers:
+  critical: 1.00
+  high: 0.70
+  medium: 0.40
+  low: 0.20
+  info: 0.00
+
+# Letter grade distribution thresholds
+grade_thresholds:
+  A: 90.0
+  B: 80.0
+  C: 70.0
+  D: 60.0
+  F: 0.0
+
+# Maximum penalty a single check can deduct from a layer (prevents 1 check from wiping out a layer)
+max_penalty_cap_per_check: 0.25
+
+# Action Prioritization Effort Values
+effort_weights:
+  S: 1.0   # Small (minutes, simple metadata or config fix)
+  M: 2.5   # Medium (hours, template refactor or content rewrites)
+  L: 5.0   # Large (days, architectural or server migration)

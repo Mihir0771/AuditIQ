@@ -1,0 +1,86 @@
+# AI Bot & Crawler Taxonomy Reference
+# Categorized by bot type:
+#   - training: Crawls the web to train foundation models (blocking prevents data use in training)
+#   - search: Crawls and indexes for real-time retrieval & citations in generative answers
+#   - user: Fetches specific URLs in response to direct real-time user prompts
+
+bots:
+  - name: GPTBot
+    vendor: OpenAI
+    user_agent: GPTBot
+    type: training
+    source_url: https://platform.openai.com/docs/bots
+    verified_on: "2026-11-21"
+    description: Crawls web content to train OpenAI foundation models (GPT-4o, o1, etc.).
+
+  - name: OAI-SearchBot
+    vendor: OpenAI
+    user_agent: OAI-SearchBot
+    type: search
+    source_url: https://platform.openai.com/docs/bots
+    verified_on: "2026-11-21"
+    description: Used for real-time search queries and citations in ChatGPT Search. Not used for training.
+
+  - name: ChatGPT-User
+    vendor: OpenAI
+    user_agent: ChatGPT-User
+    type: user
+    source_url: https://platform.openai.com/docs/bots
+    verified_on: "2026-11-21"
+    description: Triggered directly when an end user in ChatGPT asks to inspect a specific link.
+
+  - name: ClaudeBot
+    vendor: Anthropic
+    user_agent: ClaudeBot
+    type: training
+    source_url: https://docs.anthropic.com/en/docs/resources/claudebot
+    verified_on: "2026-11-21"
+    description: General web crawler for Anthropic to train Claude AI models.
+
+  - name: Claude-Web
+    vendor: Anthropic
+    user_agent: Claude-Web
+    type: user
+    source_url: https://docs.anthropic.com/en/docs/resources/claudebot
+    verified_on: "2026-11-21"
+    description: Triggered when Claude fetches links directly requested by users in chat.
+
+  - name: PerplexityBot
+    vendor: Perplexity AI
+    user_agent: PerplexityBot
+    type: search
+    source_url: https://docs.perplexity.ai/docs/perplexitybot
+    verified_on: "2026-11-21"
+    description: Crawls pages to index fresh web data for Perplexity search answers and citations.
+
+  - name: Google-Extended
+    vendor: Google
+    user_agent: Google-Extended
+    type: training
+    source_url: https://developers.google.com/search/docs/crawling-indexing/google-extended
+    verified_on: "2026-11-21"
+    description: Controls whether site content is used to improve Gemini and Vertex AI models.
+
+  - name: Googlebot
+    vendor: Google
+    user_agent: Googlebot
+    type: search
+    source_url: https://developers.google.com/search/docs/crawling-indexing/googlebot
+    verified_on: "2026-11-21"
+    description: Traditional Google web search crawler; also powers Google AI Overviews.
+
+  - name: Bytespider
+    vendor: ByteDance
+    user_agent: Bytespider
+    type: training
+    source_url: https://www.doubao.com
+    verified_on: "2026-11-21"
+    description: ByteDance web crawler used for Doubao and general AI training.
+
+  - name: CCBot
+    vendor: Common Crawl
+    user_agent: CCBot
+    type: training
+    source_url: https://commoncrawl.org/ccbot
+    verified_on: "2026-11-21"
+    description: Open web crawler whose public datasets are widely used by open-source LLMs.

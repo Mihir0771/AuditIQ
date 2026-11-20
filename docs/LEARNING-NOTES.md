@@ -1,0 +1,123 @@
+# AuditIQ Learning Notes: Foundations for AI & Data Science
+
+Welcome to the internal engineering notes for AuditIQ! These notes explain the technical concepts, data structures, and architectural decisions used in this project in plain English. Each entry follows a consistent four-part structure:
+1. **What it is**
+2. **Why it matters**
+3. **How it works**
+4. **An intuitive analogy**
+
+---
+
+## 1. Traditional SEO vs. GEO vs. AEO
+
+### What it is
+- **SEO (Search Engine Optimization)**: Optimizing websites to rank in traditional search engine results pages (SERPs) like Google Search, which return a list of blue links based on keywords, backlinks, and page authority.
+- **GEO (Generative Engine Optimization)**: Optimizing websites so that generative AI models (like ChatGPT, Perplexity, Claude, and Gemini) include the site's brand, facts, and citations when synthesizing answers to user questions.
+- **AEO (Answer Engine Optimization)**: A closely related discipline focused on structuring information so that conversational voice assistants and direct answer engines can extract immediate factual answers (e.g., featured snippets, schema answers).
+
+### Why it matters
+For twenty years, digital agencies made money by driving organic search clicks. But in 2026, millions of queries never reach a traditional search results page: users ask ChatGPT, Gemini, or Perplexity directly. If an agency's client is invisible to AI models, they lose business. AuditIQ measures both traditional foundations and emerging generative visibility.
+
+### How it works
+- SEO crawlers prioritize canonical URLs, keyword density, internal PageRank, and meta tags.
+- GEO engines prioritize **semantic extractability**: clean semantic HTML (`<article>`, `<main>`), direct answers placed at the top of content, structured entities (`schema.org/Organization`), quotable statistical facts, and robots.txt permissions that let AI crawlers index the content.
+
+### The Analogy
+Imagine the internet is a massive library:
+- **Traditional SEO** is making sure your book is on the front display shelf with a bright, eye-catching cover.
+- **GEO** is making sure that when someone asks the head librarian a complex question, the librarian quotes your book by name as their primary source.
+
+---
+
+## 2. Raw HTML vs. Rendered DOM
+
+### What it is
+- **Raw HTML**: The raw text stream sent directly over the wire by the web server in response to an HTTP `GET` request.
+- **Rendered DOM (Document Object Model)**: The final tree of elements in a browser's memory *after* downloading CSS, executing JavaScript frameworks (React, Vue, Angular, Next.js), and hydrating dynamic components.
+
+### Why it matters
+Traditional search engines like Google spend enormous compute budgets running headless Chromium to render JavaScript. However, **most AI crawlers (like GPTBot, ClaudeBot, and PerplexityBot) do not execute heavy JavaScript**. They fetch the raw HTML to save compute power and speed up indexing. If a website renders its core text, products, or reviews strictly via client-side JavaScript, **AI bots see a blank or skeleton page**.
+
+### How it works
+AuditIQ performs a **Render-vs-Raw differential analysis**:
+1. It fetches the page using a lightweight HTTP client (`httpx`) to inspect the raw HTML.
+2. It fetches the same page using a headless browser (`playwright`) to inspect the rendered DOM.
+3. It extracts the visible text from both and calculates the percentage of content missing from the raw HTML. If 40% of the content is missing from raw HTML, the site has a high risk of AI invisibility.
+
+### The Analogy
+Think of raw HTML as a dehydrated instant meal packet, and the rendered DOM as the hot cooked meal after adding boiling water and waiting five minutes. A human browser carries the hot water (JavaScript engine). But an AI bot is like a traveler with no stove who eats on the go—if the packet isn't edible dry (server-side rendered), they simply walk away hungry.
+
+---
+
+## 3. The Robots Exclusion Protocol (RFC 9309) & AI Bot Taxonomy
+
+### What it is
+A standardized text file hosted at `/robots.txt` that tells automated web crawlers which URL paths they are allowed or forbidden to request. RFC 9309 is the official IETF standard specifying how robots.txt files must be parsed.
+
+### Why it matters
+Webmasters can configure robots.txt to welcome traditional Googlebot while selectively blocking AI crawlers. Furthermore, AI vendors employ different user-agents for different tasks:
+1. **Training Crawlers** (e.g., `GPTBot`, `ClaudeBot`): Crawl the web to train future foundation models. Blocking them prevents training on your data.
+2. **Search / Indexing Crawlers** (e.g., `PerplexityBot`, `Google-Extended`): Crawl the web to index real-time information for immediate citations in search answers.
+3. **User-Triggered Fetchers** (e.g., `ChatGPT-User`): Act on behalf of a specific user who typed a URL into ChatGPT asking for a summary.
+
+### How it works
+AuditIQ evaluates a site's `/robots.txt` file against every known AI bot user-agent and path, building an **AI Access Matrix**. It tells the website owner: *"You are allowing Perplexity to cite you, but you accidentally blocked ChatGPT from ever referencing your product catalog."*
+
+### The Analogy
+`robots.txt` is like a sign on the front door of a museum. It doesn't lock the door physically, but polite visitors check it before entering. One line might say: *"Students with sketchpads welcome; commercial photographers please stay out of Hall B."*
+
+---
+
+## 4. Statistical Honesty & The Wilson Score Confidence Interval
+
+### What it is
+The **Wilson Score Interval** is a mathematical formula that calculates a confidence interval for a proportion or probability based on a sample of binary outcomes (success/failure, yes/no).
+
+### Why it matters
+In Live AI Visibility testing, we ask an AI engine a question (e.g., *"What are the best accounting software platforms for small business?"*) and check if our client's brand is mentioned or cited.
+Because LLMs are non-deterministic, running the prompt once gives a noisy, unreliable snapshot. If you run 3 times and see 2 mentions, claiming a "66.7% mention rate" is misleading because $n=3$ is a tiny sample size. The true rate could easily be 30% or 90%.
+AuditIQ uses the Wilson Score Interval to display:
+$$\text{Mention Rate: } 67\% \text{ [95\% CI: 21\% – 94\%] (n=3)}$$
+This alerts the agency that more prompt runs are needed for certainty, demonstrating true statistical rigor.
+
+### How it works
+Given $n$ trials and $p$ observed successes, the Wilson interval adjusts for small sample sizes by pulling the estimate toward 0.5 (the center of maximum uncertainty) when $n$ is low, and narrowing as $n$ grows:
+
+$$w = \frac{p + \frac{z^2}{2n} \pm z \sqrt{\frac{p(1-p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}$$
+
+Where $z = 1.96$ for a 95% confidence level.
+
+### The Analogy
+If you flip a coin twice and get heads both times, a naive tool announces: *"This coin comes up heads 100% of the time!"*
+A data scientist using the Wilson interval says: *"We observed 2 out of 2 heads, but with 95% confidence, the true probability is between 34% and 100%. Flip it 50 more times before betting your house on it."*
+
+---
+
+## 5. Pluggable Check Architecture (Open-Closed Principle)
+
+### What it is
+A software design pattern where individual audit checks (e.g., checking if title tags exist, verifying robots.txt, checking JSON-LD schema) are implemented as self-contained, isolated classes adhering to a common interface (`BaseCheck`), rather than writing one massive function with hundreds of `if/else` statements.
+
+### Why it matters
+In a production system, you might have 50 checks today and 200 checks next year. If all checks live inside one gigantic file, adding a new check risks breaking existing ones, testing is a nightmare, and multiple engineers cannot collaborate cleanly.
+With a pluggable architecture:
+- Each check is in its own file.
+- Each check has its own dedicated unit tests with passing and failing fixtures.
+- Adding a new check requires writing one file and registering it. Core crawl and scoring code remains untouched (satisfying the Open-Closed Principle of object-oriented design).
+
+### How it works
+Every check implements:
+```python
+class BaseCheck(ABC):
+    id: str           # e.g. "TECH-CANONICAL-MISSING"
+    layer: AuditLayer # e.g. AuditLayer.TECHNICAL
+    severity: Severity # Critical, High, Medium, Low, Info
+
+    @abstractmethod
+    async def run(self, context: PageContext) -> list[Finding]:
+        """Inspects page context and returns zero or more evidence-backed findings."""
+        pass
+```
+
+### The Analogy
+Think of a game console like a Nintendo Switch. The console itself (AuditIQ Core) provides power, display, and controls. Each game is a separate cartridge (Check Plugin). You can plug in a new cartridge or remove an old one without soldering anything inside the console.
