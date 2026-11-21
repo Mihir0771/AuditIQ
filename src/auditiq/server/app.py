@@ -195,6 +195,30 @@ async def get_audit_report(job_id: str, format: str = "html") -> FileResponse:
             filename=f"auditiq_report_{job_id}.pdf",
         )
 
+    if format.lower() == "json":
+        from auditiq.reports.exporters import export_json
+
+        json_path = job_manager.reports_dir / f"audit_{job_id}.json"
+        if not json_path.exists():
+            export_json(job.record, output_path=json_path)
+        return FileResponse(
+            json_path,
+            media_type="application/json",
+            filename=f"auditiq_record_{job_id}.json",
+        )
+
+    if format.lower() == "csv":
+        from auditiq.reports.exporters import export_csv
+
+        csv_path = job_manager.reports_dir / f"findings_{job_id}.csv"
+        if not csv_path.exists():
+            export_csv(job.record, output_path=csv_path)
+        return FileResponse(
+            csv_path,
+            media_type="text/csv",
+            filename=f"auditiq_findings_{job_id}.csv",
+        )
+
     html_path = job_manager.reports_dir / f"report_{job_id}.html"
     if not html_path.exists():
         from auditiq.reports.html import generate_html_report

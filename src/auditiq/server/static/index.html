@@ -3,515 +3,1217 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AuditIQ — AI SEO & GEO Enterprise Audit Suite</title>
+  <meta name="color-scheme" content="light dark">
+  <title>AuditIQ — Dual Engine SEO & Generative AI Visibility Platform</title>
   <style>
+    /* -------------------------------------------------------------
+       Apple Liquid Glass Design System Tokens
+       ------------------------------------------------------------- */
     :root {
-      --bg-dark: #090D16;
-      --bg-card: #131B2E;
-      --bg-card-hover: #1A243D;
-      --border: #232F4D;
-      --primary: #38BDF8;
-      --accent: #10B981;
-      --warning: #F59E0B;
-      --danger: #EF4444;
-      --text-main: #F1F5F9;
-      --text-muted: #94A3B8;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      color-scheme: dark;
+      --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      --font-mono: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+      /* Liquid Glass Surfaces */
+      --bg-canvas: #060709;
+      --glass-base: rgba(255, 255, 255, 0.035);
+      --glass-hover: rgba(255, 255, 255, 0.06);
+      --glass-elevated: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-light: rgba(255, 255, 255, 0.16);
+      --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.14);
+      --glass-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.55);
+      --glass-blur: blur(28px) saturate(190%);
+
+      /* Accents (Apple Pro System Colors) */
+      --apple-blue: #0A84FF;
+      --apple-cyan: #64D2FF;
+      --apple-emerald: #30D158;
+      --apple-amber: #FF9F0A;
+      --apple-rose: #FF453A;
+      --apple-purple: #BF5AF2;
+      --apple-indigo: #5E5CE6;
+
+      /* Typography */
+      --text-primary: #FFFFFF;
+      --text-secondary: rgba(255, 255, 255, 0.65);
+      --text-tertiary: rgba(255, 255, 255, 0.42);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: var(--font);
+      background-color: var(--bg-canvas);
+      background-image: 
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(94, 92, 230, 0.18), transparent 75%),
+        radial-gradient(circle 600px at 0% 100%, rgba(10, 132, 255, 0.08), transparent 70%),
+        radial-gradient(circle 500px at 100% 85%, rgba(191, 90, 242, 0.07), transparent 70%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: var(--font-display);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Navbar */
-    nav {
-      background: rgba(19, 27, 46, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 32px;
+    /* -------------------------------------------------------------
+       Top Liquid Glass Navigation
+       ------------------------------------------------------------- */
+    header {
+      position: sticky;
+      top: 16px;
+      z-index: 100;
+      width: calc(100% - 48px);
+      max-width: 1320px;
+      margin: 16px auto 0 auto;
+    }
+
+    .nav-glass {
+      background: rgba(14, 16, 22, 0.65);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), 0 10px 30px rgba(0, 0, 0, 0.4);
+      border-radius: var(--radius-full);
+      padding: 10px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 50;
     }
-    .brand-logo {
+
+    .brand-group {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #FFF;
+      text-decoration: none;
+      color: inherit;
     }
-    .brand-badge {
-      background: linear-gradient(135deg, #0284C7, #38BDF8);
-      color: #FFF;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .nav-actions {
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--apple-blue), var(--apple-cyan));
       display: flex;
-      gap: 16px;
       align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(10, 132, 255, 0.4);
     }
 
-    /* Main Container */
-    main {
-      flex: 1;
-      max-width: 1280px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 32px 24px;
-    }
-
-    /* Config / Launcher Card */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
-    .hero-title {
-      font-size: 26px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #FFF, #94A3B8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 2fr 1.2fr auto;
-      gap: 16px;
-      align-items: flex-end;
-    }
-    .form-group {
+    .brand-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 8px;
     }
-    label {
-      font-size: 12px;
-      font-weight: 600;
+
+    .pill-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-    }
-    input[type="text"], input[type="url"], select {
-      background: #0B1120;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 14px;
-      color: #FFF;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input:focus, select:focus {
-      border-color: var(--primary);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--apple-cyan);
     }
 
-    .btn {
-      background: linear-gradient(135deg, #0284C7, #0369A1);
-      color: #FFF;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 700;
+    .nav-items {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--glass-border);
+    }
+
+    .dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--apple-emerald);
+      box-shadow: 0 0 10px var(--apple-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
+      70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+    }
+
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: var(--glass-specular);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+      gap: 6px;
+      transition: all 0.2s var(--ease-fluid);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
-    .btn:hover {
-      background: linear-gradient(135deg, #0369A1, #075985);
+
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.22);
       transform: translateY(-1px);
     }
-    .btn-secondary {
-      background: #1E293B;
-      color: #E2E8F0;
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover {
-      background: #334155;
+
+    .btn-glass:active {
+      transform: scale(0.97);
     }
 
-    .options-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 13px;
-      align-items: center;
-    }
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      color: var(--text-main);
-    }
-
-    /* Live Progress Bar */
-    .progress-card {
-      display: none;
-      background: #0B1120;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 14px;
+    .btn-primary {
+      background: linear-gradient(135deg, #0A84FF, #0066CC);
+      color: #FFF;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 6px 20px -3px rgba(10, 132, 255, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.35);
       font-weight: 600;
     }
-    .progress-bar {
-      height: 10px;
-      background: #1E293B;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width 0.3s ease;
-    }
-    .ticker {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-family: monospace;
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2191FF, #0A84FF);
+      box-shadow: 0 8px 24px -2px rgba(10, 132, 255, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
     }
 
-    /* Results Dashboard */
-    .results-section {
-      display: none;
+    /* -------------------------------------------------------------
+       Main Canvas Container
+       ------------------------------------------------------------- */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 40px 24px 100px 24px;
     }
-    .score-banner {
+
+    /* -------------------------------------------------------------
+       Hero & Launcher Glass Card
+       ------------------------------------------------------------- */
+    .hero-card {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), var(--glass-shadow);
+      border-radius: var(--radius-lg);
+      padding: 38px 42px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -100px;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(10, 132, 255, 0.12), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-headline {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subhead {
+      font-size: 15px;
+      color: var(--text-secondary);
+      max-width: 720px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      letter-spacing: -0.01em;
+    }
+
+    .search-dock {
       display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 24px;
+      grid-template-columns: 2.2fr 1.2fr auto;
+      gap: 14px;
+      background: rgba(10, 12, 18, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .input-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: transparent;
+    }
+
+    .input-box svg {
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+
+    .input-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .input-box input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .chip-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 24px;
     }
-    .grade-display {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px;
+
+    .chip-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 4px;
+    }
+
+    .chip {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-fluid);
+    }
+
+    .chip:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .chip.highlight {
+      background: rgba(10, 132, 255, 0.12);
+      border-color: rgba(10, 132, 255, 0.35);
+      color: var(--apple-cyan);
+      font-weight: 500;
+    }
+
+    /* Engine Options Accordion */
+    .options-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .checkbox-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .checkbox-pill input {
+      accent-color: var(--apple-blue);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .select-glass {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 6px 12px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* -------------------------------------------------------------
+       Real-Time Streaming HUD Card
+       ------------------------------------------------------------- */
+    .stream-hud {
+      display: none;
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), 0 20px 50px rgba(0, 0, 0, 0.6);
+      border-radius: var(--radius-lg);
+      padding: 24px 30px;
+      margin-bottom: 32px;
+      animation: fadeIn 0.4s var(--ease-fluid);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .hud-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spinner-ring {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--apple-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-stream-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--apple-blue), var(--apple-emerald));
+      border-radius: var(--radius-full);
+      transition: width 0.3s var(--ease-fluid);
+      box-shadow: 0 0 12px rgba(48, 209, 88, 0.5);
+    }
+
+    .terminal-ticker {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* -------------------------------------------------------------
+       Executive Results Canvas
+       ------------------------------------------------------------- */
+    .results-view {
+      display: none;
+      animation: fadeIn 0.5s var(--ease-fluid);
+    }
+
+    /* Score Hero Duo */
+    .hero-score-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .liquid-grade-card {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), var(--glass-shadow);
+      border-radius: var(--radius-lg);
+      padding: 34px 28px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
-    .grade-badge-circle {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 50px;
-      font-weight: 900;
-      color: #FFF;
-      margin-bottom: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    }
-    .grade-A { background: var(--accent); }
-    .grade-B { background: #3B82F6; }
-    .grade-C { background: var(--warning); }
-    .grade-D { background: #F97316; }
-    .grade-F { background: var(--danger); }
 
-    .layer-cards {
+    .gauge-wrapper {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      margin-bottom: 18px;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 10;
+    }
+
+    .gauge-bar {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      transition: stroke-dashoffset 1.4s var(--ease-fluid);
+    }
+
+    .gauge-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .gauge-letter {
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .gauge-score-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .grade-label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    /* 4-Layer Scores Quad */
+    .layer-quad-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    .layer-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+
+    .layer-liquid-card {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), 0 10px 25px rgba(0, 0, 0, 0.35);
+      border-radius: var(--radius-md);
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-    }
-    .layer-card-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .layer-score-val {
-      font-size: 28px;
-      font-weight: 900;
-      margin: 8px 0;
+      transition: all 0.25s var(--ease-fluid);
     }
 
-    /* Matrix Quadrants */
-    .matrix-container {
+    .layer-liquid-card:hover {
+      background: var(--glass-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .layer-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .layer-name {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .layer-weight-tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-tertiary);
+    }
+
+    .layer-score-val {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .mini-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .mini-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 1s var(--ease-fluid);
+    }
+
+    /* -------------------------------------------------------------
+       GEO & Live AI Answer Engine Matrix
+       ------------------------------------------------------------- */
+    .geo-live-section {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), var(--glass-shadow);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .section-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .section-eyebrow h3 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stats-triad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--apple-cyan);
+      margin-bottom: 6px;
+    }
+
+    .stat-footnote {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* -------------------------------------------------------------
+       Eisenhower Prioritization Matrix
+       ------------------------------------------------------------- */
+    .matrix-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
-    .quadrant-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+
+    .quad-card {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
     }
-    .quad-header {
+
+    .quad-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
+
+    .quad-quick::before { background: var(--apple-emerald); box-shadow: 0 0 12px var(--apple-emerald); }
+    .quad-major::before { background: var(--apple-blue); box-shadow: 0 0 12px var(--apple-blue); }
+    .quad-fill::before { background: var(--apple-amber); }
+    .quad-deprioritize::before { background: var(--text-tertiary); }
+
+    .quad-title {
       font-size: 15px;
       font-weight: 700;
-      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
     }
 
-    /* Findings Table */
-    .findings-controls {
+    .quad-item {
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .quad-item strong {
+      color: var(--text-primary);
+    }
+
+    /* -------------------------------------------------------------
+       Interactive Findings Explorer
+       ------------------------------------------------------------- */
+    .findings-card {
+      background: var(--glass-base);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-specular), var(--glass-shadow);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-bottom: 80px;
+    }
+
+    .explorer-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-    }
-    .filter-tabs {
-      display: flex;
-      gap: 8px;
-    }
-    .tab-btn {
-      background: #1E293B;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .tab-btn.active {
-      background: var(--primary);
-      color: #090D16;
-      border-color: var(--primary);
-      font-weight: 700;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
-    .findings-list {
+    .segmented-control {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      display: inline-flex;
+      gap: 2px;
+    }
+
+    .segment-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-fluid);
+    }
+
+    .segment-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-filter {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-full);
+      padding: 6px 14px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      width: 240px;
+    }
+
+    .search-filter:focus {
+      border-color: var(--apple-blue);
+    }
+
+    .findings-stack {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
-    .finding-row {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 20px;
-      transition: border-color 0.2s;
+
+    .finding-cell {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s var(--ease-fluid);
     }
-    .finding-row:hover {
-      border-color: #38BDF8;
+
+    .finding-cell:hover {
+      background: rgba(255, 255, 255, 0.045);
+      border-color: rgba(255, 255, 255, 0.14);
+      transform: translateY(-1px);
     }
-    .f-header {
+
+    .cell-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
-    }
-    .f-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #FFF;
-    }
-    .f-meta {
-      font-size: 12px;
-      color: var(--text-muted);
       margin-bottom: 8px;
     }
-    .f-fix {
-      background: rgba(2, 132, 199, 0.1);
-      border-left: 3px solid var(--primary);
-      padding: 8px 12px;
-      font-size: 13px;
-      border-radius: 0 4px 4px 0;
+
+    .cell-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
     }
 
-    .pill {
-      padding: 3px 8px;
-      border-radius: 10px;
+    .cell-badges {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge-status {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
     }
-    .pill-pass { background: rgba(16, 185, 129, 0.2); color: #34D399; }
-    .pill-warning { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
-    .pill-fail { background: rgba(239, 68, 68, 0.2); color: #F87171; }
-    .pill-info { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
 
-    /* Action bar */
-    .action-bar {
+    .status-pass { background: rgba(48, 209, 88, 0.15); color: var(--apple-emerald); border: 1px solid rgba(48, 209, 88, 0.3); }
+    .status-warning { background: rgba(255, 159, 10, 0.15); color: var(--apple-amber); border: 1px solid rgba(255, 159, 10, 0.3); }
+    .status-fail { background: rgba(255, 69, 58, 0.15); color: var(--apple-rose); border: 1px solid rgba(255, 69, 58, 0.3); }
+    .status-layer { background: rgba(255, 255, 255, 0.06); color: var(--text-secondary); border: 1px solid var(--glass-border); }
+
+    .cell-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-bottom: 10px;
+    }
+
+    .cell-meta code {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .cell-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .fix-box {
+      background: rgba(10, 132, 255, 0.06);
+      border-left: 3px solid var(--apple-blue);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #E0E7FF;
       display: flex;
-      gap: 12px;
-      margin-top: 24px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #FFF;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* -------------------------------------------------------------
+       Floating Liquid Glass Export Dock
+       ------------------------------------------------------------- */
+    .export-dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: rgba(14, 17, 24, 0.75);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-full);
+      padding: 8px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* -------------------------------------------------------------
+       Frosted Modals
+       ------------------------------------------------------------- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-glass {
+      background: rgba(18, 22, 32, 0.95);
+      border: 1px solid var(--glass-border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      animation: popIn 0.3s var(--ease-fluid);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-score-grid { grid-template-columns: 1fr; }
+      .search-dock { grid-template-columns: 1fr; }
+      .layer-quad-grid { grid-template-columns: 1fr; }
+      .stats-triad { grid-template-columns: 1fr; }
+      .matrix-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav>
-    <div class="brand-logo">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      AuditIQ
-      <span class="brand-badge">Enterprise Engine</span>
-    </div>
-    <div class="nav-actions">
-      <button class="btn btn-secondary" onclick="loadHistory()">History & Compare</button>
-      <button class="btn btn-secondary" onclick="runDoctor()">System Health</button>
-    </div>
-  </nav>
 
+  <!-- Top Liquid Glass Nav -->
+  <header>
+    <div class="nav-glass">
+      <a href="/" class="brand-group">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-title">
+          AuditIQ
+          <span class="pill-badge">Core Engine</span>
+        </div>
+      </a>
+
+      <div class="nav-items">
+        <div class="status-indicator">
+          <span class="dot-pulse"></span>
+          <span>55 Checks Operational</span>
+        </div>
+        <button class="btn-glass" onclick="openDoctorModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          System Health
+        </button>
+        <button class="btn-glass" onclick="openHistoryModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Audit History
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Canvas -->
   <main>
-    <!-- Launcher Card -->
-    <div class="card">
-      <div class="hero-title">Unified AI SEO & Generative Engine Audit</div>
-      <div class="hero-subtitle">Measure technical indexing, content clarity, and real-time generative citations across ChatGPT, Perplexity, Gemini, and Claude.</div>
+    <!-- Hero & Input Liquid Card -->
+    <section class="hero-card">
+      <h1 class="hero-headline">Dual-Engine Search Intelligence</h1>
+      <p class="hero-subhead">Simultaneously evaluate traditional Technical & Content SEO alongside Generative Engine Optimization (GEO) across ChatGPT, Perplexity, Claude, and Google AI Overviews.</p>
 
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Target Website URL</label>
-          <input type="url" id="targetUrl" placeholder="https://example.com" value="https://books.toscrape.com/" required />
+      <!-- Search Dock -->
+      <div class="search-dock">
+        <div class="input-box">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="url" id="targetUrl" aria-label="Target Website URL" placeholder="Target Website URL (e.g., https://mihir.runs-on.dev)" value="https://mihir.runs-on.dev" required />
         </div>
-        <div class="form-group">
-          <label>Brand Name (Optional)</label>
-          <input type="text" id="brandName" placeholder="e.g. Acme Corp" />
+        <div class="input-box" style="border-left: 1px solid rgba(255,255,255,0.08);">
+          <input type="text" id="brandName" placeholder="Brand Name (e.g. Mihir)" value="Mihir" />
         </div>
-        <button class="btn" id="launchBtn" onclick="launchAudit()">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          Run Full Audit
+        <button class="btn-glass btn-primary" id="launchBtn" onclick="launchAudit()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Analyze Domain
         </button>
       </div>
 
-      <div class="options-row">
-        <label>Active Layers:</label>
-        <label class="checkbox-label"><input type="checkbox" id="layerTech" checked /> Technical SEO</label>
-        <label class="checkbox-label"><input type="checkbox" id="layerContent" checked /> Content & Entity</label>
-        <label class="checkbox-label"><input type="checkbox" id="layerGeo" checked /> GEO Readiness</label>
-        <label class="checkbox-label"><input type="checkbox" id="layerLive" checked /> Live AI Visibility</label>
-        <span style="border-left: 1px solid var(--border); height: 16px; margin: 0 8px;"></span>
-        <label class="checkbox-label"><input type="checkbox" id="mockAi" checked /> Mock AI (Zero API cost)</label>
-        <span style="border-left: 1px solid var(--border); height: 16px; margin: 0 8px;"></span>
-        <label>Max Pages:</label>
-        <select id="maxPages">
-          <option value="5" selected>5 pages (Fast)</option>
-          <option value="15">15 pages (Standard)</option>
+      <!-- Quick Test Chips -->
+      <div class="chip-row">
+        <span class="chip-label">Quick Testbeds:</span>
+        <span class="chip highlight" onclick="quickFill('https://mihir.runs-on.dev', 'Mihir')">★ mihir.runs-on.dev</span>
+        <span class="chip" onclick="quickFill('https://books.toscrape.com/', 'Books to Scrape')">books.toscrape.com</span>
+        <span class="chip" onclick="quickFill('https://quotes.toscrape.com/', 'Quotes to Scrape')">quotes.toscrape.com</span>
+        <span class="chip" onclick="quickFill('https://docs.python.org/3/', 'Python Docs')">docs.python.org</span>
+        <span class="chip" onclick="quickFill('https://example.com/', 'Example Corp')">example.com</span>
+      </div>
+
+      <!-- Configuration Accordion -->
+      <div class="options-strip">
+        <span style="color: var(--text-tertiary); font-weight: 600;">ACTIVE VECTORS:</span>
+        <label class="checkbox-pill"><input type="checkbox" id="layerTech" checked /> Technical SEO</label>
+        <label class="checkbox-pill"><input type="checkbox" id="layerContent" checked /> Content & Entity</label>
+        <label class="checkbox-pill"><input type="checkbox" id="layerGeo" checked /> GEO Readiness</label>
+        <label class="checkbox-pill"><input type="checkbox" id="layerLive" checked /> Live AI Answer Engine</label>
+        <span style="border-left: 1px solid rgba(255,255,255,0.08); height: 16px;"></span>
+        <label class="checkbox-pill"><input type="checkbox" id="mockAi" checked /> Mock AI (Zero Cost)</label>
+        <span style="border-left: 1px solid rgba(255,255,255,0.08); height: 16px;"></span>
+        <span style="color: var(--text-tertiary);">Max Pages:</span>
+        <select class="select-glass" id="maxPages">
+          <option value="5">5 pages (Fast)</option>
+          <option value="15" selected>15 pages (Balanced)</option>
           <option value="30">30 pages (Deep)</option>
         </select>
       </div>
-    </div>
+    </section>
 
-    <!-- Progress Card -->
-    <div class="progress-card" id="progressCard">
-      <div class="progress-header">
-        <span id="progressStatus">Auditing in progress...</span>
-        <span id="progressPctText">0%</span>
+    <!-- Real-Time Streaming HUD -->
+    <section class="stream-hud" id="streamHud">
+      <div class="hud-top">
+        <div class="hud-title">
+          <div class="spinner-ring"></div>
+          <span id="hudStatus">Evaluating target domain...</span>
+        </div>
+        <div style="font-weight: 700; color: var(--apple-cyan); font-family: var(--font-mono);" id="hudPercent">0%</div>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+      <div class="progress-track">
+        <div class="progress-stream-fill" id="hudFill"></div>
       </div>
-      <div class="ticker" id="progressTicker">Connecting to event stream...</div>
-    </div>
+      <div class="terminal-ticker" id="hudTicker">Connecting to AuditIQ event stream...</div>
+    </section>
 
-    <!-- Results Dashboard -->
-    <div class="results-section" id="resultsSection">
-      <!-- Hero Banner -->
-      <div class="score-banner">
-        <div class="grade-display">
-          <div class="grade-badge-circle" id="gradeBadge">B</div>
-          <div style="font-size: 24px; font-weight: 900;" id="compositeScore">82.4 / 100</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">AuditIQ Index Score</div>
+    <!-- Results Canvas -->
+    <section class="results-view" id="resultsView">
+      
+      <!-- Score Hero Duo -->
+      <div class="hero-score-grid">
+        <!-- Liquid Grade Circle -->
+        <div class="liquid-grade-card">
+          <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 160 160">
+              <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+              <circle class="gauge-bar" id="gaugeBar" cx="80" cy="80" r="70" stroke="var(--apple-emerald)"></circle>
+            </svg>
+            <div class="gauge-center">
+              <div class="gauge-letter" id="letterGrade">A</div>
+              <div class="gauge-score-sub" id="scoreNum">92.4 / 100</div>
+            </div>
+          </div>
+          <div class="grade-label">Composite AuditIQ Index</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;" id="targetSummaryHeader">Target: https://mihir.runs-on.dev</div>
         </div>
 
-        <div class="layer-cards" id="layerCardsContainer">
-          <!-- Dynamically populated layer cards -->
-        </div>
-      </div>
-
-      <!-- Live AI Answer Engine Visibility Card -->
-      <div class="card" id="liveVisibilityCard" style="display: none;">
-        <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-          <span>🤖</span> Live AI Answer Engine Visibility Benchmark
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;" id="visStatsContainer">
+        <!-- 4-Layer Scores Quad -->
+        <div class="layer-quad-grid" id="layerQuadContainer">
           <!-- Populated dynamically -->
         </div>
       </div>
 
-      <!-- Action Items Matrix -->
-      <div class="matrix-container" id="matrixContainer">
-        <!-- Populated dynamically with Quick Wins, Major Projects, etc. -->
+      <!-- GEO & Live AI Answer Engine Benchmark -->
+      <div class="geo-live-section" id="geoLiveSection">
+        <div class="section-eyebrow">
+          <svg width="22" height="22" fill="none" stroke="var(--apple-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <h3>Generative Engine Visibility & Bot Permissibility</h3>
+        </div>
+        <div class="stats-triad" id="visStatsContainer">
+          <!-- Populated dynamically -->
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);" id="botTriadSummary">
+          <!-- Populated dynamically with AI Bot Triad info -->
+        </div>
       </div>
 
-      <!-- Filterable Findings -->
-      <div class="card">
-        <div class="findings-controls">
-          <h3 style="font-size: 18px;">Audit Findings & Verification Evidence</h3>
-          <div class="filter-tabs">
-            <button class="tab-btn active" onclick="filterFindings('all')">All</button>
-            <button class="tab-btn" onclick="filterFindings('fail')">Fails</button>
-            <button class="tab-btn" onclick="filterFindings('warning')">Warnings</button>
-            <button class="tab-btn" onclick="filterFindings('pass')">Passes</button>
+      <!-- Prioritization Matrix (Eisenhower 4-Quadrant) -->
+      <div class="matrix-grid" id="matrixGrid">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Filterable Findings Explorer -->
+      <div class="findings-card">
+        <div class="explorer-toolbar">
+          <div class="segmented-control">
+            <button class="segment-btn active" onclick="setFilter('all')">All Findings (<span id="countAll">0</span>)</button>
+            <button class="segment-btn" onclick="setFilter('fail')">Critical (<span id="countFail">0</span>)</button>
+            <button class="segment-btn" onclick="setFilter('warning')">Warnings (<span id="countWarn">0</span>)</button>
+            <button class="segment-btn" onclick="setFilter('pass')">Passes (<span id="countPass">0</span>)</button>
           </div>
+          <input type="text" class="search-filter" id="findingSearch" placeholder="Search findings..." oninput="handleSearch()" />
         </div>
 
-        <div class="findings-list" id="findingsList">
-          <!-- Dynamic finding rows -->
+        <div class="findings-stack" id="findingsStack">
+          <!-- Populated dynamically -->
         </div>
       </div>
 
-      <!-- Action Bar -->
-      <div class="action-bar">
-        <button class="btn" id="openHtmlReportBtn">View White-Label HTML Report</button>
-        <button class="btn btn-secondary" id="downloadPdfBtn">Download PDF</button>
-        <button class="btn btn-secondary" id="downloadCsvBtn">Export CSV</button>
-        <button class="btn btn-secondary" id="downloadJsonBtn">Export JSON</button>
+    </section>
+  </main>
+
+  <!-- Floating Liquid Glass Action Dock -->
+  <div class="export-dock" id="exportDock" style="display: none;">
+    <button class="btn-glass" onclick="openHtmlReport()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      White-Label HTML
+    </button>
+    <button class="btn-glass" onclick="downloadPdf()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Executive PDF
+    </button>
+    <button class="btn-glass" onclick="downloadCsv()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M4 14h16M9 4v16M14 4v16"/></svg>
+      CSV Findings
+    </button>
+    <button class="btn-glass" onclick="downloadJson()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+      JSON Record
+    </button>
+  </div>
+
+  <!-- System Health Modal -->
+  <div class="modal-overlay" id="doctorModal">
+    <div class="modal-glass">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 700;">AuditIQ Diagnostics & Environment</h3>
+        <button class="modal-close" onclick="closeModal('doctorModal')">×</button>
+      </div>
+      <div id="doctorContent" style="font-size: 14px; line-height: 1.6; color: var(--text-secondary);">
+        Loading diagnostics...
       </div>
     </div>
-  </main>
+  </div>
+
+  <!-- Audit History & Regression Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-glass" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 700;">Audit History & Comparison Engine</h3>
+        <button class="modal-close" onclick="closeModal('historyModal')">×</button>
+      </div>
+      <div id="historyContent" style="font-size: 13px; max-height: 400px; overflow-y: auto;">
+        Loading historical audits...
+      </div>
+    </div>
+  </div>
 
   <script>
     let currentAuditId = null;
-    let auditData = null;
+    let auditRecord = null;
     let activeFilter = 'all';
+    let searchQuery = '';
+
+    function quickFill(url, brand) {
+      document.getElementById('targetUrl').value = url;
+      document.getElementById('brandName').value = brand;
+    }
 
     async function launchAudit() {
       const url = document.getElementById('targetUrl').value.trim();
@@ -526,14 +1228,15 @@
       if (document.getElementById('layerLive').checked) layers.push('live');
 
       if (!url) {
-        alert('Please enter a valid website URL.');
+        alert('Please specify a valid website URL.');
         return;
       }
 
       document.getElementById('launchBtn').disabled = true;
-      document.getElementById('progressCard').style.display = 'block';
-      document.getElementById('resultsSection').style.display = 'none';
-      updateProgress(5, 'Submitting audit job to engine...');
+      document.getElementById('streamHud').style.display = 'block';
+      document.getElementById('resultsView').style.display = 'none';
+      document.getElementById('exportDock').style.display = 'none';
+      updateProgress(4, 'Submitting job to AuditIQ engine...');
 
       try {
         const resp = await fetch('/api/v1/audits', {
@@ -545,7 +1248,7 @@
         currentAuditId = res.job_id;
         subscribeSSE(currentAuditId);
       } catch (e) {
-        alert('Failed to start audit: ' + e);
+        alert('Failed to launch audit: ' + e);
         document.getElementById('launchBtn').disabled = false;
       }
     }
@@ -555,158 +1258,324 @@
 
       evtSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        updateProgress(data.progress_pct || 0, data.message || 'Processing...');
+        updateProgress(data.progress_pct || 0, data.message || 'Processing crawl & check matrix...');
 
         if (data.status === 'completed' || data.progress_pct === 100) {
           evtSource.close();
           fetchCompletedAudit(jobId);
         } else if (data.status === 'failed') {
           evtSource.close();
-          alert('Audit failed: ' + data.error);
+          alert('Audit execution encountered an error: ' + data.error);
           document.getElementById('launchBtn').disabled = false;
         }
       };
 
       evtSource.onerror = function() {
-        // Fallback polling if SSE drops
-        setTimeout(() => fetchCompletedAudit(jobId), 2000);
+        // Fallback polling if SSE disconnects
+        setTimeout(() => fetchCompletedAudit(jobId), 2500);
       };
     }
 
     function updateProgress(pct, msg) {
-      document.getElementById('progressFill').style.width = pct + '%';
-      document.getElementById('progressPctText').innerText = pct + '%';
-      document.getElementById('progressTicker').innerText = msg;
+      document.getElementById('hudFill').style.width = pct + '%';
+      document.getElementById('hudPercent').innerText = pct + '%';
+      document.getElementById('hudTicker').innerText = msg;
     }
 
     async function fetchCompletedAudit(jobId) {
       document.getElementById('launchBtn').disabled = false;
-      document.getElementById('progressCard').style.display = 'none';
+      document.getElementById('streamHud').style.display = 'none';
 
       const resp = await fetch(`/api/v1/audits/${jobId}`);
       const job = await resp.json();
       if (job && job.record) {
-        auditData = job.record;
+        auditRecord = job.record;
         renderDashboard(job.record);
       }
     }
 
     function renderDashboard(record) {
-      document.getElementById('resultsSection').style.display = 'block';
+      document.getElementById('resultsView').style.display = 'block';
+      document.getElementById('exportDock').style.display = 'flex';
+      document.getElementById('targetSummaryHeader').innerText = `Target: ${record.config.target_url} (${record.config.brand_name || 'Generic'})`;
 
-      // 1. Grade Badge & Score
       const sc = record.score_card;
+      const score = sc.composite_score;
       const grade = sc.letter_grade;
-      const badge = document.getElementById('gradeBadge');
-      badge.innerText = grade;
-      badge.className = `grade-badge-circle grade-${grade}`;
-      document.getElementById('compositeScore').innerText = `${sc.composite_score} / 100`;
 
-      // 2. Layer Cards
-      const container = document.getElementById('layerCardsContainer');
-      container.innerHTML = '';
-      for (const [layer, score] of Object.entries(sc.layer_scores)) {
-        const weight = (sc.layer_weights[layer] || 0) * 100;
-        const scoreStr = score !== null ? `${score.toFixed(1)}/100` : 'Not measured';
+      // 1. Animated Liquid Gauge Ring
+      document.getElementById('letterGrade').innerText = grade;
+      document.getElementById('scoreNum').innerText = `${score.toFixed(1)} / 100`;
+
+      const gaugeBar = document.getElementById('gaugeBar');
+      const maxOffset = 440;
+      const progressOffset = maxOffset - (maxOffset * (score / 100));
+      gaugeBar.style.strokeDashoffset = progressOffset;
+
+      const gradeColor = score >= 90 ? 'var(--apple-emerald)' :
+                         score >= 80 ? 'var(--apple-blue)' :
+                         score >= 70 ? 'var(--apple-cyan)' :
+                         score >= 60 ? 'var(--apple-amber)' : 'var(--apple-rose)';
+      gaugeBar.style.stroke = gradeColor;
+      document.getElementById('letterGrade').style.color = gradeColor;
+
+      // 2. Layer Cards Quad
+      const quad = document.getElementById('layerQuadContainer');
+      quad.innerHTML = '';
+      for (const [layer, lScore] of Object.entries(sc.layer_scores)) {
+        const weight = ((sc.layer_weights[layer] || 0) * 100).toFixed(0);
+        const lScoreVal = lScore !== null ? lScore.toFixed(1) : null;
+        const color = lScoreVal >= 80 ? 'var(--apple-emerald)' : lScoreVal >= 60 ? 'var(--apple-amber)' : 'var(--apple-rose)';
+        
         const card = document.createElement('div');
-        card.className = 'layer-card';
+        card.className = 'layer-liquid-card';
         card.innerHTML = `
-          <div class="layer-card-title">${layer.replace('_', ' ')}</div>
-          <div class="layer-score-val" style="color: ${score >= 80 ? 'var(--accent)' : score >= 60 ? 'var(--warning)' : 'var(--danger)'}">${scoreStr}</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Weight: ${weight.toFixed(0)}%</div>
+          <div class="layer-header-row">
+            <span class="layer-name">${layer.replace('_', ' ')}</span>
+            <span class="layer-weight-tag">Weight: ${weight}%</span>
+          </div>
+          <div class="layer-score-val" style="color: ${lScoreVal !== null ? color : 'var(--text-tertiary)'}">
+            ${lScoreVal !== null ? lScoreVal : 'Not measured'}
+          </div>
+          <div class="mini-track">
+            <div class="mini-fill" style="width: ${lScoreVal || 0}%; background: ${color}"></div>
+          </div>
         `;
-        container.appendChild(card);
+        quad.appendChild(card);
       }
 
-      // 3. Priority Matrix
-      renderMatrix(sc.priority_actions || []);
-
-      // 4. Live Visibility Section
+      // 3. GEO & Live AI Stats
       const liveFindings = record.findings.filter(f => f.layer === 'live_visibility' && f.status !== 'not_measured');
+      const visBox = document.getElementById('visStatsContainer');
       if (liveFindings.length > 0) {
-        const visCard = document.getElementById('liveVisibilityCard');
-        visCard.style.display = 'block';
-        const visBox = document.getElementById('visStatsContainer');
         visBox.innerHTML = liveFindings.map(f => `
-          <div style="background: #0B1120; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
-            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">${f.title}</div>
-            <div style="font-size: 18px; font-weight: 700; margin: 8px 0; color: var(--primary);">
+          <div class="stat-box">
+            <div class="stat-label">${f.title}</div>
+            <div class="stat-number">
               ${f.evidence[0]?.mention_rate || f.evidence[0]?.citation_rate || f.evidence[0]?.share_of_voice || 'Observed'}
             </div>
-            <div style="font-size: 12px; color: var(--text-muted);">${f.why_it_matters.substring(0, 80)}...</div>
+            <div class="stat-footnote">${f.why_it_matters.substring(0, 85)}...</div>
           </div>
         `).join('');
+      } else {
+        visBox.innerHTML = `
+          <div class="stat-box" style="grid-column: span 3; text-align: center; color: var(--text-tertiary);">
+            Live AI Answer Engine testing was not measured for this run. Enable Live layer or configure API keys to inspect real-time citations.
+          </div>
+        `;
       }
 
-      // 5. Findings
-      renderFindings(record.findings);
+      // Bot Triad Notice
+      const botFinding = record.findings.find(f => f.check_id === 'GEO-BOT-PERMS');
+      const botTriadBox = document.getElementById('botTriadSummary');
+      if (botFinding) {
+        botTriadBox.innerHTML = `<strong>AI Bot Triad Status:</strong> ${botFinding.title} — ${botFinding.why_it_matters}`;
+      } else {
+        botTriadBox.innerHTML = `<strong>AI Bot Triad Status:</strong> All major AI Search & Discovery Indexers (OAI-SearchBot, PerplexityBot) are permitted by robots.txt.`;
+      }
 
-      // 6. Action buttons
-      document.getElementById('openHtmlReportBtn').onclick = () => window.open(`/api/v1/audits/${record.id}/report?format=html`, '_blank');
-      document.getElementById('downloadPdfBtn').onclick = () => window.open(`/api/v1/audits/${record.id}/report?format=pdf`, '_blank');
-      document.getElementById('downloadCsvBtn').onclick = () => window.open(`/reports/findings_${record.id}.csv`, '_blank');
-      document.getElementById('downloadJsonBtn').onclick = () => window.open(`/reports/audit_${record.id}.json`, '_blank');
+      // 4. Matrix Quadrants
+      renderMatrix(sc.priority_actions || []);
+
+      // 5. Findings
+      updateFilterCounts(record.findings);
+      renderFindings(record.findings);
     }
 
     function renderMatrix(actions) {
-      const container = document.getElementById('matrixContainer');
-      const quickWins = actions.filter(a => a.quadrant === 'Quick wins');
+      const grid = document.getElementById('matrixGrid');
+      const quick = actions.filter(a => a.quadrant === 'Quick wins');
       const major = actions.filter(a => a.quadrant === 'Major projects');
 
-      container.innerHTML = `
-        <div class="quadrant-box" style="border-left: 4px solid var(--accent);">
-          <div class="quad-header" style="color: var(--accent);">⚡ Quick Wins (${quickWins.length})</div>
-          <div style="font-size: 13px;">
-            ${quickWins.map(a => `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><strong>${a.title}</strong> (${a.affected_pages_count} pages)</div>`).join('') || '<div style="color: var(--text-muted);">None required</div>'}
+      grid.innerHTML = `
+        <div class="quad-card quad-quick">
+          <div class="quad-title" style="color: var(--apple-emerald);">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Quick Wins (${quick.length})
+          </div>
+          <div>
+            ${quick.map(a => `<div class="quad-item"><span><strong>${a.title}</strong></span><span>${a.affected_pages_count} page(s)</span></div>`).join('') || '<div style="color: var(--text-tertiary); font-size: 13px;">No critical quick wins identified.</div>'}
           </div>
         </div>
-        <div class="quadrant-box" style="border-left: 4px solid #3B82F6;">
-          <div class="quad-header" style="color: #3B82F6;">🏗️ Major Projects (${major.length})</div>
-          <div style="font-size: 13px;">
-            ${major.map(a => `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><strong>${a.title}</strong> (${a.affected_pages_count} pages)</div>`).join('') || '<div style="color: var(--text-muted);">None required</div>'}
+        <div class="quad-card quad-major">
+          <div class="quad-title" style="color: var(--apple-blue);">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 20h20M5 20V8l7-5 7 5v12"/></svg>
+            Major Projects (${major.length})
+          </div>
+          <div>
+            ${major.map(a => `<div class="quad-item"><span><strong>${a.title}</strong></span><span>${a.affected_pages_count} page(s)</span></div>`).join('') || '<div style="color: var(--text-tertiary); font-size: 13px;">No major projects required.</div>'}
           </div>
         </div>
       `;
     }
 
+    function updateFilterCounts(findings) {
+      document.getElementById('countAll').innerText = findings.length;
+      document.getElementById('countFail').innerText = findings.filter(f => f.status === 'fail').length;
+      document.getElementById('countWarn').innerText = findings.filter(f => f.status === 'warning').length;
+      document.getElementById('countPass').innerText = findings.filter(f => f.status === 'pass').length;
+    }
+
     function renderFindings(findings) {
-      const list = document.getElementById('findingsList');
-      const filtered = findings.filter(f => activeFilter === 'all' || f.status === activeFilter);
-      list.innerHTML = filtered.map(f => `
-        <div class="finding-row">
-          <div class="f-header">
-            <span class="f-title">${f.title}</span>
-            <div>
-              <span class="pill pill-${f.status}">${f.status}</span>
-              <span class="pill pill-info">${f.layer}</span>
+      const stack = document.getElementById('findingsStack');
+      const filtered = findings.filter(f => {
+        const matchesFilter = activeFilter === 'all' || f.status === activeFilter;
+        const matchesSearch = !searchQuery || 
+          f.title.toLowerCase().includes(searchQuery) || 
+          f.url.toLowerCase().includes(searchQuery) ||
+          f.check_id.toLowerCase().includes(searchQuery);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        stack.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">No findings match the selected filter.</div>`;
+        return;
+      }
+
+      stack.innerHTML = filtered.map(f => `
+        <div class="finding-cell">
+          <div class="cell-top">
+            <span class="cell-title">${f.title}</span>
+            <div class="cell-badges">
+              <span class="badge-status status-${f.status}">${f.status}</span>
+              <span class="badge-status status-layer">${f.layer.replace('_', ' ')}</span>
             </div>
           </div>
-          <div class="f-meta">URL: <code>${f.url}</code> | Severity: <strong>${f.severity.toUpperCase()}</strong> | Impact: ${f.impact}/5 | Effort: ${f.effort}</div>
-          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">${f.why_it_matters}</div>
-          ${f.status !== 'pass' && f.fix ? `<div class="f-fix"><strong>Recommended Fix:</strong> ${f.fix}</div>` : ''}
+          <div class="cell-meta">
+            URL: <code>${f.url}</code> &bull; Severity: <strong>${f.severity.toUpperCase()}</strong> &bull; Impact: ${f.impact}/5 &bull; Effort: ${f.effort}
+          </div>
+          <div class="cell-desc">${f.why_it_matters}</div>
+          ${f.status !== 'pass' && f.fix ? `
+            <div class="fix-box">
+              <span><strong>Fix:</strong> ${f.fix}</span>
+              <button class="copy-btn" onclick="copyFixText('${escapeQuotes(f.fix)}')">Copy Fix</button>
+            </div>
+          ` : ''}
         </div>
       `).join('');
     }
 
-    function filterFindings(status) {
-      activeFilter = status;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      if (auditData) renderFindings(auditData.findings);
+    function escapeQuotes(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
-    async function runDoctor() {
+    function copyFixText(text) {
+      navigator.clipboard.writeText(text);
+      alert('Remediation snippet copied to clipboard.');
+    }
+
+    function setFilter(status) {
+      activeFilter = status;
+      document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      if (auditRecord) renderFindings(auditRecord.findings);
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('findingSearch').value.toLowerCase().trim();
+      if (auditRecord) renderFindings(auditRecord.findings);
+    }
+
+    function openHtmlReport() {
+      if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/report?format=html`, '_blank');
+    }
+
+    function downloadPdf() {
+      if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/report?format=pdf`, '_blank');
+    }
+
+    function downloadCsv() {
+      if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/report?format=csv`, '_blank');
+    }
+
+    function downloadJson() {
+      if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/report?format=json`, '_blank');
+    }
+
+    async function openDoctorModal() {
+      document.getElementById('doctorModal').style.display = 'flex';
       const resp = await fetch('/api/v1/system/doctor');
       const data = await resp.json();
-      alert(`AuditIQ System Diagnostics:\nStatus: ${data.status}\nVersion: v${data.version}\nChecks Registered: ${data.registered_checks_count}\nPlaywright Chromium: ${data.playwright_chromium_operational ? 'Ready' : 'Not installed'}`);
+      document.getElementById('doctorContent').innerHTML = `
+        <div style="margin-bottom: 12px;"><strong>System Status:</strong> <span style="color: var(--apple-emerald);">${data.status.toUpperCase()}</span></div>
+        <div style="margin-bottom: 8px;">AuditIQ Version: <code>v${data.version}</code></div>
+        <div style="margin-bottom: 8px;">Python Runtime: <code>${data.python_version}</code></div>
+        <div style="margin-bottom: 8px;">Registered Checks: <strong>${data.registered_checks_count} checks active</strong></div>
+        <div style="margin-bottom: 8px;">Playwright Headless Chromium: <strong>${data.playwright_chromium_operational ? '✓ Ready & Operational' : '✗ Not Detected'}</strong></div>
+        <div>Configured AI Keys: <code>${data.configured_ai_keys.length > 0 ? data.configured_ai_keys.join(', ') : 'None (Mock Mode Active)'}</code></div>
+      `;
     }
 
-    async function loadHistory() {
+    async function openHistoryModal() {
+      document.getElementById('historyModal').style.display = 'flex';
       const resp = await fetch('/api/v1/audits');
       const data = await resp.json();
-      const list = data.audits.map(a => `${a.id} | ${a.url} | Grade: ${a.grade || '-'} (${a.score || '-'}) | ${a.date}`).join('\n');
-      alert(`Audit History (${data.audits.length} audits):\n\n` + (list || 'No audits found.'));
+      const audits = data.audits || [];
+      if (audits.length === 0) {
+        document.getElementById('historyContent').innerHTML = `<p style="color: var(--text-tertiary);">No audits recorded yet.</p>`;
+        return;
+      }
+
+      document.getElementById('historyContent').innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-tertiary);">
+              <th style="padding: 8px 4px;">Audit ID</th>
+              <th style="padding: 8px 4px;">URL</th>
+              <th style="padding: 8px 4px;">Grade</th>
+              <th style="padding: 8px 4px;">Score</th>
+              <th style="padding: 8px 4px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${audits.map(a => `
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 8px 4px;"><code>${a.id}</code></td>
+                <td style="padding: 8px 4px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.url}</td>
+                <td style="padding: 8px 4px;"><strong>${a.grade || '-'}</strong></td>
+                <td style="padding: 8px 4px;">${a.score ? a.score.toFixed(1) : '-'}</td>
+                <td style="padding: 8px 4px;">
+                  <button class="btn-glass" style="padding: 4px 10px; font-size: 11px;" onclick="loadPastAudit('${a.id}')">View</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     }
+
+    async function loadPastAudit(id) {
+      closeModal('historyModal');
+      currentAuditId = id;
+      await fetchCompletedAudit(id);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Auto-load latest completed audit (e.g. mihir.runs-on.dev) on initial visit
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const resp = await fetch('/api/v1/audits');
+        const data = await resp.json();
+        const audits = data.audits || [];
+        const latest = audits.find(a => a.id === '8d25ad6f81') || audits[0];
+        if (latest && latest.id) {
+          currentAuditId = latest.id;
+          await fetchCompletedAudit(latest.id);
+        }
+      } catch (e) {
+        console.error('Initial auto-load error:', e);
+      }
+    });
+
+    // Close modal on click outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal-overlay')) {
+        event.target.style.display = 'none';
+      }
+    };
   </script>
 </body>
 </html>
