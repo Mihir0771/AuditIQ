@@ -66,10 +66,8 @@ dmypy.json
 *.sqlite
 data/
 snapshots/
-reports/*.pdf
-reports/*.html
-reports/*.json
-reports/*.csv
+reports/*
+!reports/.gitkeep
 output/
 temp/
 research/outputs/
