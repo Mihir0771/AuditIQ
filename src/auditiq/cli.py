@@ -21,7 +21,11 @@ from auditiq.checks.tech import register_tech_checks
 from auditiq.crawler.engine import HttpCrawler
 from auditiq.models.audit import AuditConfig, AuditRecord, AuditStatus
 from auditiq.models.finding import AuditLayer
+from auditiq.reports.exporters import export_csv, export_json
+from auditiq.reports.html import generate_html_report
+from auditiq.reports.pdf import generate_pdf_report
 from auditiq.scoring.engine import calculate_score_card
+from auditiq.scoring.regression import compare_audits
 from auditiq.visibility.generator import PromptGenerator
 from auditiq.visibility.runner import VisibilityRunner
 
@@ -277,8 +281,13 @@ def audit(
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(record.model_dump_json(indent=2))
 
+    html_file = out_dir / f"audit_{audit_id}.html"
+    generate_html_report(record, output_path=html_file)
+
     console.print(
-        f"\n[bold green]✓[/bold green] Audit complete! Full report saved to [cyan]{out_file}[/cyan]"
+        f"\n[bold green]✓[/bold green] Audit complete!\n"
+        f"  JSON data: [cyan]{out_file}[/cyan]\n"
+        f"  Interactive HTML report: [cyan]{html_file}[/cyan]"
     )
 
 
@@ -345,6 +354,114 @@ def doctor() -> None:
         )
 
     console.print("\n[bold green]Doctor diagnosis complete.[/bold green]")
+
+
+@app.command()
+def report(
+    audit_file: Annotated[
+        Path, typer.Argument(help="Path to audit JSON file (e.g. reports/audit_xxx.json)")
+    ],
+    formats: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Comma-separated formats: html,pdf,json,csv"),
+    ] = "html",
+    out_dir: Annotated[Path | None, typer.Option("--out", "-o", help="Output directory")] = None,
+) -> None:
+    """Generates export reports (HTML, PDF, JSON, CSV) from a completed audit record."""
+    if not audit_file.exists():
+        console.print(f"[bold red]Error:[/bold red] File not found: {audit_file}")
+        raise typer.Exit(code=1)
+
+    with open(audit_file, encoding="utf-8") as f:
+        import json
+
+        data = json.load(f)
+        record = AuditRecord.model_validate(data)
+
+    target_dir = out_dir or audit_file.parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+    requested = [fmt.strip().lower() for fmt in formats.split(",")]
+
+    console.print(f"Generating reports for [green]{record.config.target_url}[/green]...")
+
+    for fmt in requested:
+        if fmt == "html":
+            p = generate_html_report(record, output_path=target_dir / f"report_{record.id}.html")
+            console.print(f"[bold green]✓[/bold green] HTML report: [cyan]{p}[/cyan]")
+        elif fmt == "pdf":
+            with console.status("[bold green]Rendering PDF with Headless Chromium...[/bold green]"):
+                p = generate_pdf_report(record, output_path=target_dir / f"report_{record.id}.pdf")
+            console.print(f"[bold green]✓[/bold green] PDF report: [cyan]{p}[/cyan]")
+        elif fmt == "csv":
+            p = export_csv(record, output_path=target_dir / f"findings_{record.id}.csv")
+            console.print(f"[bold green]✓[/bold green] CSV findings: [cyan]{p}[/cyan]")
+        elif fmt == "json":
+            p = export_json(record, output_path=target_dir / f"record_{record.id}.json")
+            console.print(f"[bold green]✓[/bold green] JSON record: [cyan]{p}[/cyan]")
+
+
+@app.command()
+def compare(
+    baseline_file: Annotated[Path, typer.Argument(help="Path to baseline audit JSON")],
+    current_file: Annotated[Path, typer.Argument(help="Path to current audit JSON")],
+) -> None:
+    """Compares two audit records to track score deltas, resolved issues, and regressions."""
+    if not baseline_file.exists() or not current_file.exists():
+        console.print("[bold red]Error:[/bold red] One or both audit files do not exist.")
+        raise typer.Exit(code=1)
+
+    import json
+
+    with open(baseline_file, encoding="utf-8") as f:
+        b_record = AuditRecord.model_validate(json.load(f))
+    with open(current_file, encoding="utf-8") as f:
+        c_record = AuditRecord.model_validate(json.load(f))
+
+    cmp = compare_audits(b_record, c_record)
+
+    console.print(
+        Panel.fit(
+            f"[bold cyan]AuditIQ Regression Analysis & Comparison[/bold cyan]\n"
+            f"Domain: [green]{cmp.target_url}[/green] | Baseline: {cmp.baseline_date} -> Current: {cmp.current_date}",
+            border_style="cyan",
+        )
+    )
+
+    delta_str = f"+{cmp.score_delta}" if cmp.score_delta >= 0 else f"{cmp.score_delta}"
+    delta_color = "green" if cmp.score_delta >= 0 else "red"
+
+    tbl = Table(title="Score Evolution", box=box.ROUNDED)
+    tbl.add_column("Metric", style="bold")
+    tbl.add_column("Baseline", justify="center")
+    tbl.add_column("Current", justify="center")
+    tbl.add_column("Delta", justify="center")
+
+    tbl.add_row(
+        "Composite Score",
+        f"{cmp.baseline_score}/100 ({cmp.baseline_grade})",
+        f"{cmp.current_score}/100 ({cmp.current_grade})",
+        f"[{delta_color}]{delta_str}[/{delta_color}]",
+    )
+
+    for layer, d in cmp.layer_deltas.items():
+        l_delta_str = f"+{d}" if d >= 0 else f"{d}"
+        l_color = "green" if d >= 0 else "red"
+        tbl.add_row(
+            f"{layer.replace('_', ' ').title()}", "-", "-", f"[{l_color}]{l_delta_str}[/{l_color}]"
+        )
+
+    console.print(tbl)
+
+    # Summary of issue movement
+    console.print(
+        f"\n[bold green]✓ Resolved Issues:[/bold green] {cmp.resolved_count} issues fixed"
+    )
+    console.print(
+        f"[bold red]✗ New Regressions:[/bold red] {cmp.new_issues_count} new issues introduced"
+    )
+    console.print(
+        f"[bold yellow]● Persistent Issues:[/bold yellow] {cmp.persistent_count} issues remain open\n"
+    )
 
 
 if __name__ == "__main__":

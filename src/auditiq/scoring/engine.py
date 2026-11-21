@@ -33,13 +33,14 @@ EFFORT_DIVIDERS: dict[Effort, float] = {
 def calculate_score_card(
     findings: list[Finding],
     total_pages_crawled: int,
-    active_layers: list[AuditLayer],
+    active_layers: list[AuditLayer] | None = None,
     scoring_version: str = "2026.1",
 ) -> ScoreCard:
     """Calculates reproducible, explainable layer scores and overall composite score.
 
     Implements proportional weight redistribution when layers are not measured.
     """
+    effective_layers = active_layers or list(AuditLayer)
     total_pages = max(1, total_pages_crawled)
 
     # Group findings by check_id
@@ -56,7 +57,7 @@ def calculate_score_card(
     top_positive: list[str] = []
 
     for layer in AuditLayer:
-        if layer not in active_layers:
+        if layer not in effective_layers:
             layer_scores[layer] = None
             continue
 
@@ -115,11 +116,11 @@ def calculate_score_card(
         layer_scores[layer] = max(0.0, min(100.0, raw_layer_score))
 
     # Calculate proportional redistribution weights
-    active_weight_sum = sum(DEFAULT_LAYER_WEIGHTS[layer_item] for layer_item in active_layers)
+    active_weight_sum = sum(DEFAULT_LAYER_WEIGHTS[layer_item] for layer_item in effective_layers)
     normalized_weights: dict[AuditLayer, float] = {}
     composite_score = 0.0
 
-    for layer in active_layers:
+    for layer in effective_layers:
         norm_w = DEFAULT_LAYER_WEIGHTS[layer] / active_weight_sum
         normalized_weights[layer] = round(norm_w, 4)
         layer_s = layer_scores.get(layer)
@@ -148,7 +149,7 @@ def calculate_score_card(
         composite_score=composite_score,
         letter_grade=grade,
         layer_scores=layer_scores,
-        active_layers=active_layers,
+        active_layers=effective_layers,
         layer_weights=normalized_weights,
         top_negative_drivers=top_negative[:5],
         top_positive_drivers=top_positive[:5],

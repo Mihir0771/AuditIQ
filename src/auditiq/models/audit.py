@@ -76,6 +76,7 @@ class AuditRecord(BaseModel):
     id: str
     config: AuditConfig
     status: AuditStatus = AuditStatus.PENDING
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     crawl_summary: dict[str, Any] = Field(default_factory=dict)
