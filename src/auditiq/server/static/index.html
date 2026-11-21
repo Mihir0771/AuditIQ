@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuditIQ — AI SEO & GEO Enterprise Audit Suite</title>
+  <style>
+    :root {
+      --bg-dark: #090D16;
+      --bg-card: #131B2E;
+      --bg-card-hover: #1A243D;
+      --border: #232F4D;
+      --primary: #38BDF8;
+      --accent: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    nav {
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #FFF;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, #0284C7, #38BDF8);
+      color: #FFF;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .nav-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Config / Launcher Card */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #FFF, #94A3B8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr auto;
+      gap: 16px;
+      align-items: flex-end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    input[type="text"], input[type="url"], select {
+      background: #0B1120;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #FFF;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0284C7, #0369A1);
+      color: #FFF;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #0369A1, #075985);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: #1E293B;
+      color: #E2E8F0;
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .options-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      align-items: center;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    /* Live Progress Bar */
+    .progress-card {
+      display: none;
+      background: #0B1120;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #1E293B;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease;
+    }
+    .ticker {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* Results Dashboard */
+    .results-section {
+      display: none;
+    }
+    .score-banner {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .grade-display {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .grade-badge-circle {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      font-weight: 900;
+      color: #FFF;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+    .grade-A { background: var(--accent); }
+    .grade-B { background: #3B82F6; }
+    .grade-C { background: var(--warning); }
+    .grade-D { background: #F97316; }
+    .grade-F { background: var(--danger); }
+
+    .layer-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .layer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .layer-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .layer-score-val {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 8px 0;
+    }
+
+    /* Matrix Quadrants */
+    .matrix-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .quadrant-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .quad-header {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Findings Table */
+    .findings-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .tab-btn {
+      background: #1E293B;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #090D16;
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+
+    .findings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .finding-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: border-color 0.2s;
+    }
+    .finding-row:hover {
+      border-color: #38BDF8;
+    }
+    .f-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .f-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFF;
+    }
+    .f-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .f-fix {
+      background: rgba(2, 132, 199, 0.1);
+      border-left: 3px solid var(--primary);
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .pill {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .pill-pass { background: rgba(16, 185, 129, 0.2); color: #34D399; }
+    .pill-warning { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+    .pill-fail { background: rgba(239, 68, 68, 0.2); color: #F87171; }
+    .pill-info { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div class="brand-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      AuditIQ
+      <span class="brand-badge">Enterprise Engine</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-secondary" onclick="loadHistory()">History & Compare</button>
+      <button class="btn btn-secondary" onclick="runDoctor()">System Health</button>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Launcher Card -->
+    <div class="card">
+      <div class="hero-title">Unified AI SEO & Generative Engine Audit</div>
+      <div class="hero-subtitle">Measure technical indexing, content clarity, and real-time generative citations across ChatGPT, Perplexity, Gemini, and Claude.</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Target Website URL</label>
+          <input type="url" id="targetUrl" placeholder="https://example.com" value="https://books.toscrape.com/" required />
+        </div>
+        <div class="form-group">
+          <label>Brand Name (Optional)</label>
+          <input type="text" id="brandName" placeholder="e.g. Acme Corp" />
+        </div>
+        <button class="btn" id="launchBtn" onclick="launchAudit()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Run Full Audit
+        </button>
+      </div>
+
+      <div class="options-row">
+        <label>Active Layers:</label>
+        <label class="checkbox-label"><input type="checkbox" id="layerTech" checked /> Technical SEO</label>
+        <label class="checkbox-label"><input type="checkbox" id="layerContent" checked /> Content & Entity</label>
+        <label class="checkbox-label"><input type="checkbox" id="layerGeo" checked /> GEO Readiness</label>
+        <label class="checkbox-label"><input type="checkbox" id="layerLive" checked /> Live AI Visibility</label>
+        <span style="border-left: 1px solid var(--border); height: 16px; margin: 0 8px;"></span>
+        <label class="checkbox-label"><input type="checkbox" id="mockAi" checked /> Mock AI (Zero API cost)</label>
+        <span style="border-left: 1px solid var(--border); height: 16px; margin: 0 8px;"></span>
+        <label>Max Pages:</label>
+        <select id="maxPages">
+          <option value="5" selected>5 pages (Fast)</option>
+          <option value="15">15 pages (Standard)</option>
+          <option value="30">30 pages (Deep)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="progress-card" id="progressCard">
+      <div class="progress-header">
+        <span id="progressStatus">Auditing in progress...</span>
+        <span id="progressPctText">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="ticker" id="progressTicker">Connecting to event stream...</div>
+    </div>
+
+    <!-- Results Dashboard -->
+    <div class="results-section" id="resultsSection">
+      <!-- Hero Banner -->
+      <div class="score-banner">
+        <div class="grade-display">
+          <div class="grade-badge-circle" id="gradeBadge">B</div>
+          <div style="font-size: 24px; font-weight: 900;" id="compositeScore">82.4 / 100</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">AuditIQ Index Score</div>
+        </div>
+
+        <div class="layer-cards" id="layerCardsContainer">
+          <!-- Dynamically populated layer cards -->
+        </div>
+      </div>
+
+      <!-- Live AI Answer Engine Visibility Card -->
+      <div class="card" id="liveVisibilityCard" style="display: none;">
+        <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <span>🤖</span> Live AI Answer Engine Visibility Benchmark
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;" id="visStatsContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Action Items Matrix -->
+      <div class="matrix-container" id="matrixContainer">
+        <!-- Populated dynamically with Quick Wins, Major Projects, etc. -->
+      </div>
+
+      <!-- Filterable Findings -->
+      <div class="card">
+        <div class="findings-controls">
+          <h3 style="font-size: 18px;">Audit Findings & Verification Evidence</h3>
+          <div class="filter-tabs">
+            <button class="tab-btn active" onclick="filterFindings('all')">All</button>
+            <button class="tab-btn" onclick="filterFindings('fail')">Fails</button>
+            <button class="tab-btn" onclick="filterFindings('warning')">Warnings</button>
+            <button class="tab-btn" onclick="filterFindings('pass')">Passes</button>
+          </div>
+        </div>
+
+        <div class="findings-list" id="findingsList">
+          <!-- Dynamic finding rows -->
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <button class="btn" id="openHtmlReportBtn">View White-Label HTML Report</button>
+        <button class="btn btn-secondary" id="downloadPdfBtn">Download PDF</button>
+        <button class="btn btn-secondary" id="downloadCsvBtn">Export CSV</button>
+        <button class="btn btn-secondary" id="downloadJsonBtn">Export JSON</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentAuditId = null;
+    let auditData = null;
+    let activeFilter = 'all';
+
+    async function launchAudit() {
+      const url = document.getElementById('targetUrl').value.trim();
+      const brand = document.getElementById('brandName').value.trim();
+      const maxPages = parseInt(document.getElementById('maxPages').value, 10);
+      const mockAi = document.getElementById('mockAi').checked;
+
+      const layers = [];
+      if (document.getElementById('layerTech').checked) layers.push('tech');
+      if (document.getElementById('layerContent').checked) layers.push('content');
+      if (document.getElementById('layerGeo').checked) layers.push('geo');
+      if (document.getElementById('layerLive').checked) layers.push('live');
+
+      if (!url) {
+        alert('Please enter a valid website URL.');
+        return;
+      }
+
+      document.getElementById('launchBtn').disabled = true;
+      document.getElementById('progressCard').style.display = 'block';
+      document.getElementById('resultsSection').style.display = 'none';
+      updateProgress(5, 'Submitting audit job to engine...');
+
+      try {
+        const resp = await fetch('/api/v1/audits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, brand_name: brand, layers, max_pages: maxPages, mock_ai: mockAi })
+        });
+        const res = await resp.json();
+        currentAuditId = res.job_id;
+        subscribeSSE(currentAuditId);
+      } catch (e) {
+        alert('Failed to start audit: ' + e);
+        document.getElementById('launchBtn').disabled = false;
+      }
+    }
+
+    function subscribeSSE(jobId) {
+      const evtSource = new EventSource(`/api/v1/audits/${jobId}/stream`);
+
+      evtSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        updateProgress(data.progress_pct || 0, data.message || 'Processing...');
+
+        if (data.status === 'completed' || data.progress_pct === 100) {
+          evtSource.close();
+          fetchCompletedAudit(jobId);
+        } else if (data.status === 'failed') {
+          evtSource.close();
+          alert('Audit failed: ' + data.error);
+          document.getElementById('launchBtn').disabled = false;
+        }
+      };
+
+      evtSource.onerror = function() {
+        // Fallback polling if SSE drops
+        setTimeout(() => fetchCompletedAudit(jobId), 2000);
+      };
+    }
+
+    function updateProgress(pct, msg) {
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPctText').innerText = pct + '%';
+      document.getElementById('progressTicker').innerText = msg;
+    }
+
+    async function fetchCompletedAudit(jobId) {
+      document.getElementById('launchBtn').disabled = false;
+      document.getElementById('progressCard').style.display = 'none';
+
+      const resp = await fetch(`/api/v1/audits/${jobId}`);
+      const job = await resp.json();
+      if (job && job.record) {
+        auditData = job.record;
+        renderDashboard(job.record);
+      }
+    }
+
+    function renderDashboard(record) {
+      document.getElementById('resultsSection').style.display = 'block';
+
+      // 1. Grade Badge & Score
+      const sc = record.score_card;
+      const grade = sc.letter_grade;
+      const badge = document.getElementById('gradeBadge');
+      badge.innerText = grade;
+      badge.className = `grade-badge-circle grade-${grade}`;
+      document.getElementById('compositeScore').innerText = `${sc.composite_score} / 100`;
+
+      // 2. Layer Cards
+      const container = document.getElementById('layerCardsContainer');
+      container.innerHTML = '';
+      for (const [layer, score] of Object.entries(sc.layer_scores)) {
+        const weight = (sc.layer_weights[layer] || 0) * 100;
+        const scoreStr = score !== null ? `${score.toFixed(1)}/100` : 'Not measured';
+        const card = document.createElement('div');
+        card.className = 'layer-card';
+        card.innerHTML = `
+          <div class="layer-card-title">${layer.replace('_', ' ')}</div>
+          <div class="layer-score-val" style="color: ${score >= 80 ? 'var(--accent)' : score >= 60 ? 'var(--warning)' : 'var(--danger)'}">${scoreStr}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Weight: ${weight.toFixed(0)}%</div>
+        `;
+        container.appendChild(card);
+      }
+
+      // 3. Priority Matrix
+      renderMatrix(sc.priority_actions || []);
+
+      // 4. Live Visibility Section
+      const liveFindings = record.findings.filter(f => f.layer === 'live_visibility' && f.status !== 'not_measured');
+      if (liveFindings.length > 0) {
+        const visCard = document.getElementById('liveVisibilityCard');
+        visCard.style.display = 'block';
+        const visBox = document.getElementById('visStatsContainer');
+        visBox.innerHTML = liveFindings.map(f => `
+          <div style="background: #0B1120; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">${f.title}</div>
+            <div style="font-size: 18px; font-weight: 700; margin: 8px 0; color: var(--primary);">
+              ${f.evidence[0]?.mention_rate || f.evidence[0]?.citation_rate || f.evidence[0]?.share_of_voice || 'Observed'}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">${f.why_it_matters.substring(0, 80)}...</div>
+          </div>
+        `).join('');
+      }
+
+      // 5. Findings
+      renderFindings(record.findings);
+
+      // 6. Action buttons
+      document.getElementById('openHtmlReportBtn').onclick = () => window.open(`/api/v1/audits/${record.id}/report?format=html`, '_blank');
+      document.getElementById('downloadPdfBtn').onclick = () => window.open(`/api/v1/audits/${record.id}/report?format=pdf`, '_blank');
+      document.getElementById('downloadCsvBtn').onclick = () => window.open(`/reports/findings_${record.id}.csv`, '_blank');
+      document.getElementById('downloadJsonBtn').onclick = () => window.open(`/reports/audit_${record.id}.json`, '_blank');
+    }
+
+    function renderMatrix(actions) {
+      const container = document.getElementById('matrixContainer');
+      const quickWins = actions.filter(a => a.quadrant === 'Quick wins');
+      const major = actions.filter(a => a.quadrant === 'Major projects');
+
+      container.innerHTML = `
+        <div class="quadrant-box" style="border-left: 4px solid var(--accent);">
+          <div class="quad-header" style="color: var(--accent);">⚡ Quick Wins (${quickWins.length})</div>
+          <div style="font-size: 13px;">
+            ${quickWins.map(a => `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><strong>${a.title}</strong> (${a.affected_pages_count} pages)</div>`).join('') || '<div style="color: var(--text-muted);">None required</div>'}
+          </div>
+        </div>
+        <div class="quadrant-box" style="border-left: 4px solid #3B82F6;">
+          <div class="quad-header" style="color: #3B82F6;">🏗️ Major Projects (${major.length})</div>
+          <div style="font-size: 13px;">
+            ${major.map(a => `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><strong>${a.title}</strong> (${a.affected_pages_count} pages)</div>`).join('') || '<div style="color: var(--text-muted);">None required</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFindings(findings) {
+      const list = document.getElementById('findingsList');
+      const filtered = findings.filter(f => activeFilter === 'all' || f.status === activeFilter);
+      list.innerHTML = filtered.map(f => `
+        <div class="finding-row">
+          <div class="f-header">
+            <span class="f-title">${f.title}</span>
+            <div>
+              <span class="pill pill-${f.status}">${f.status}</span>
+              <span class="pill pill-info">${f.layer}</span>
+            </div>
+          </div>
+          <div class="f-meta">URL: <code>${f.url}</code> | Severity: <strong>${f.severity.toUpperCase()}</strong> | Impact: ${f.impact}/5 | Effort: ${f.effort}</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">${f.why_it_matters}</div>
+          ${f.status !== 'pass' && f.fix ? `<div class="f-fix"><strong>Recommended Fix:</strong> ${f.fix}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function filterFindings(status) {
+      activeFilter = status;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      if (auditData) renderFindings(auditData.findings);
+    }
+
+    async function runDoctor() {
+      const resp = await fetch('/api/v1/system/doctor');
+      const data = await resp.json();
+      alert(`AuditIQ System Diagnostics:\nStatus: ${data.status}\nVersion: v${data.version}\nChecks Registered: ${data.registered_checks_count}\nPlaywright Chromium: ${data.playwright_chromium_operational ? 'Ready' : 'Not installed'}`);
+    }
+
+    async function loadHistory() {
+      const resp = await fetch('/api/v1/audits');
+      const data = await resp.json();
+      const list = data.audits.map(a => `${a.id} | ${a.url} | Grade: ${a.grade || '-'} (${a.score || '-'}) | ${a.date}`).join('\n');
+      alert(`Audit History (${data.audits.length} audits):\n\n` + (list || 'No audits found.'));
+    }
+  </script>
+</body>
+</html>

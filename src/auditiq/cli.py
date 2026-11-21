@@ -464,5 +464,25 @@ def compare(
     )
 
 
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option("--host", "-h", help="Bind host")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", "-p", help="Bind port")] = 8000,
+    reload: Annotated[bool, typer.Option("--reload", help="Enable auto-reload")] = False,
+) -> None:
+    """Starts the AuditIQ FastAPI server and interactive web dashboard."""
+    import uvicorn
+
+    console.print(
+        Panel.fit(
+            f"[bold cyan]AuditIQ Web Server & Dashboard[/bold cyan]\n"
+            f"Dashboard UI: [green]http://{host}:{port}/[/green]\n"
+            f"API Docs: [cyan]http://{host}:{port}/docs[/cyan]",
+            border_style="cyan",
+        )
+    )
+    uvicorn.run("auditiq.server.app:app", host=host, port=port, reload=reload)
+
+
 if __name__ == "__main__":
     app()
