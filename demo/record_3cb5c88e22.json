@@ -1,0 +1,770 @@
+{
+  "id": "3cb5c88e22",
+  "config": {
+    "target_url": "https://books.toscrape.com/",
+    "brand_name": "",
+    "competitors": [],
+    "niche": "",
+    "country": "en-US",
+    "layers": [
+      "technical",
+      "content",
+      "geo_readiness",
+      "live_visibility"
+    ],
+    "max_pages": 5,
+    "max_depth": 1,
+    "render_sample": 5,
+    "concurrency": 5,
+    "respect_robots": true
+  },
+  "status": "completed",
+  "created_at": "2026-11-21T06:01:33.616518Z",
+  "started_at": "2026-11-21T05:37:10.720928Z",
+  "completed_at": null,
+  "crawl_summary": {
+    "total_pages": 1,
+    "duration_sec": 10.68,
+    "sitemap_urls_count": 0
+  },
+  "score_card": {
+    "scoring_version": "2026.1",
+    "composite_score": 69.3,
+    "letter_grade": "D",
+    "layer_scores": {
+      "technical": 51.5,
+      "content": 30.0,
+      "geo_readiness": 81.9,
+      "live_visibility": 100.0
+    },
+    "active_layers": [
+      "technical",
+      "content",
+      "geo_readiness",
+      "live_visibility"
+    ],
+    "layer_weights": {
+      "technical": 0.25,
+      "content": 0.2,
+      "geo_readiness": 0.25,
+      "live_visibility": 0.3
+    },
+    "top_negative_drivers": [
+      "robots.txt Presence & Accessibility affected 1 page(s) (-49.0 pts)",
+      "XML Sitemap Discovery & Validity affected 1 page(s) (-49.0 pts)",
+      "Missing rel='canonical' Link Tag affected 1 page(s) (-49.0 pts)",
+      "Missing or Empty <title> Tag affected 1 page(s) (-100.0 pts)",
+      "Missing Meta Description affected 1 page(s) (-16.0 pts)"
+    ],
+    "top_positive_drivers": [
+      "Accidental Critical Path Blocking in robots.txt passed cleanly.",
+      "Time to First Byte (TTFB) Latency passed cleanly.",
+      "AI Bot & Crawler Access Matrix (Training vs. Search Bots) passed cleanly.",
+      "CDN / WAF Bot Challenge or 403 Page Detection passed cleanly.",
+      "Bot Response Latency (TTFB < 800ms for Real-Time AI Search) passed cleanly."
+    ],
+    "priority_actions": [
+      {
+        "title": "Missing or Empty <title> Tag",
+        "check_id": "TECH-TITLE-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 5.0,
+        "impact": 5,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add a unique, descriptive <title> tag inside the <head> of every HTML page.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "robots.txt Presence & Accessibility",
+        "check_id": "TECH-ROBOTS-PRESENCE",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Publish a valid /robots.txt file at the root of your domain.",
+        "example_url": "https://books.toscrape.com/robots.txt"
+      },
+      {
+        "title": "XML Sitemap Discovery & Validity",
+        "check_id": "TECH-SITEMAP-PRESENCE",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Publish an XML sitemap at /sitemap.xml and reference it in /robots.txt.",
+        "example_url": "https://books.toscrape.com/sitemap.xml"
+      },
+      {
+        "title": "Missing rel='canonical' Link Tag",
+        "check_id": "TECH-CANONICAL-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add a self-referencing <link rel='canonical' href='https://...'> tag in the <head>.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Mobile Responsive Viewport Configuration",
+        "check_id": "TECH-VIEWPORT",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add <meta name='viewport' content='width=device-width, initial-scale=1.0'> in the <head>.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing essential trust pages: About Us, Contact, Privacy Policy",
+        "check_id": "CONT-TRUST-PAGES",
+        "layer": "content",
+        "quadrant": "Quick wins",
+        "priority_score": 3.2,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Ensure dedicated About, Contact, Privacy Policy, and Terms pages are linked in your main navigation or footer.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing Meta Description",
+        "check_id": "TECH-META-DESC-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 3.0,
+        "impact": 3,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add an enticing, descriptive <meta name='description' content='...'> tag.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing <h1> heading tag",
+        "check_id": "TECH-H1-MISSING-MULTI",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 3.0,
+        "impact": 3,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Ensure each page contains exactly one <h1> element accurately describing the page subject.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Core Schema.org Type Coverage",
+        "check_id": "TECH-SCHEMA-TYPES",
+        "layer": "technical",
+        "quadrant": "Major projects",
+        "priority_score": 1.6,
+        "impact": 4,
+        "effort": "M",
+        "affected_pages_count": 1,
+        "fix_summary": "Deploy relevant Schema.org JSON-LD templates based on page intent.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Thin content: Page contains only 193 words (<250 words)",
+        "check_id": "CONT-THIN-CONTENT",
+        "layer": "content",
+        "quadrant": "Major projects",
+        "priority_score": 1.28,
+        "impact": 4,
+        "effort": "M",
+        "affected_pages_count": 1,
+        "fix_summary": "Expand thin pages with comprehensive answers, examples, or consolidate into parent category pages.",
+        "example_url": "https://books.toscrape.com/"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "CONT-TRUST-PAGES-433ceedb6833",
+      "check_id": "CONT-TRUST-PAGES",
+      "layer": "content",
+      "severity": "high",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing essential trust pages: About Us, Contact, Privacy Policy",
+      "evidence": [
+        {
+          "missing_pages": [
+            "About Us",
+            "Contact",
+            "Privacy Policy"
+          ],
+          "known_urls_evaluated": 1
+        }
+      ],
+      "why_it_matters": "Clear institutional identity (About Us, Contact, Privacy Policy, Terms of Service) is a foundational trust requirement for both organic search ranking and AI knowledge graph verification.",
+      "fix": "Ensure dedicated About, Contact, Privacy Policy, and Terms pages are linked in your main navigation or footer.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+      ]
+    },
+    {
+      "id": "TECH-ROBOTS-PRESENCE-70bf6b396ce0",
+      "check_id": "TECH-ROBOTS-PRESENCE",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/robots.txt",
+      "title": "robots.txt Presence & Accessibility",
+      "evidence": [
+        {
+          "error": "robots.txt was not found or returned non-200 status code"
+        }
+      ],
+      "why_it_matters": "robots.txt is the universal entry point for all web crawlers. Without it, crawlers may waste crawl budget on non-canonical URLs, internal search parameters, or private endpoints.",
+      "fix": "Publish a valid /robots.txt file at the root of your domain.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro"
+      ]
+    },
+    {
+      "id": "TECH-ROBOTS-BLOCKING-9d976e0f3dc5",
+      "check_id": "TECH-ROBOTS-BLOCKING",
+      "layer": "technical",
+      "severity": "critical",
+      "status": "pass",
+      "url": "https://books.toscrape.com/robots.txt",
+      "title": "Accidental Critical Path Blocking in robots.txt",
+      "evidence": [
+        {
+          "message": "No catastrophic global Disallow: / rule found."
+        }
+      ],
+      "why_it_matters": "Accidental 'Disallow: /' or disallowing core CSS/JS/images prevents search engines and AI crawlers from indexing content or rendering pages properly.",
+      "fix": "Audit Disallow rules in robots.txt to ensure the homepage ('/') and primary content paths remain accessible.",
+      "effort": "S",
+      "impact": 5,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt"
+      ]
+    },
+    {
+      "id": "TECH-SITEMAP-PRESENCE-46f9e36a8f41",
+      "check_id": "TECH-SITEMAP-PRESENCE",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/sitemap.xml",
+      "title": "XML Sitemap Discovery & Validity",
+      "evidence": [
+        {
+          "error": "No valid XML sitemaps discovered or sitemap was empty"
+        }
+      ],
+      "why_it_matters": "XML sitemaps provide a roadmap of all canonical, high-value pages, ensuring search engines discover new and updated content rapidly.",
+      "fix": "Publish an XML sitemap at /sitemap.xml and reference it in /robots.txt.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview"
+      ]
+    },
+    {
+      "id": "TECH-WWW-CONSISTENCY-2675fcf48965",
+      "check_id": "TECH-WWW-CONSISTENCY",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "www vs. non-www Redirection Consistency",
+      "evidence": [
+        {
+          "canonical_host": "books.toscrape.com"
+        }
+      ],
+      "why_it_matters": "Allowing both www and non-www versions of a website to return 200 OK splits link authority and creates duplicate content across domains.",
+      "fix": "Configure web server or CDN (Cloudflare/Vercel) to redirect the non-canonical host with a 301 status.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "GEO-BOT-ACCESS-e844505b1a03",
+      "check_id": "GEO-BOT-ACCESS",
+      "layer": "geo_readiness",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/robots.txt",
+      "title": "AI Bot & Crawler Access Matrix (Training vs. Search Bots)",
+      "evidence": [
+        {
+          "message": "All primary AI search bots are allowed access to the site."
+        }
+      ],
+      "why_it_matters": "AI vendors operate distinct web crawlers. Blocking training bots (GPTBot, ClaudeBot) protects copyright, but blocking search crawlers (OAI-SearchBot, PerplexityBot) destroys real-time citations and brand visibility in generative AI answers.",
+      "fix": "Configure robots.txt to explicitly permit AI search crawlers (OAI-SearchBot, PerplexityBot) while selectively enforcing policy for training bots based on your intellectual property strategy.",
+      "effort": "S",
+      "impact": 5,
+      "references": [
+        "https://platform.openai.com/docs/bots",
+        "https://docs.perplexity.ai/docs/perplexitybot",
+        "https://docs.anthropic.com/en/docs/resources/claudebot"
+      ]
+    },
+    {
+      "id": "GEO-FIREWALL-BLOCKS-a08e71f35eb9",
+      "check_id": "GEO-FIREWALL-BLOCKS",
+      "layer": "geo_readiness",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "CDN / WAF Bot Challenge or 403 Page Detection",
+      "evidence": [
+        {
+          "status_code": 200,
+          "waf_clear": true
+        }
+      ],
+      "why_it_matters": "Aggressive Cloudflare, CloudFront, or Akamai WAF rules often return JS challenge (CAPTCHA) pages or 403 Forbidden to non-browser requests, making content completely invisible to automated AI engines.",
+      "fix": "Configure CDN / Firewall rules to allow verified AI crawler IP ranges and user-agents without triggering managed browser challenges.",
+      "effort": "M",
+      "impact": 5,
+      "references": [
+        "https://developers.cloudflare.com/waf/managed-rules/"
+      ]
+    },
+    {
+      "id": "GEO-LLMS-TXT-61f4ec67d029",
+      "check_id": "GEO-LLMS-TXT",
+      "layer": "geo_readiness",
+      "severity": "info",
+      "status": "pass",
+      "url": "https://books.toscrape.com/llms.txt",
+      "title": "No /llms.txt file detected (Optional modern AI standard)",
+      "evidence": [
+        {
+          "status_code": 404,
+          "recommended": true,
+          "note": "Optional modern standard for AI agent context discovery."
+        }
+      ],
+      "why_it_matters": "The /llms.txt standard (proposed by Jeremy Howard and adopted by Anthropic, Perplexity, Cursor, etc.) provides AI agents and answer engines with a curated, token-efficient map of your site's core content and documentation in clean Markdown format.",
+      "fix": "Publish an /llms.txt file at your site root containing an H1 title, a concise blockquote summary, and markdown links to key documentation pages.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://llmstxt.org/",
+        "https://docs.anthropic.com/"
+      ]
+    },
+    {
+      "id": "LIVE-MENTION-RATE-a59bb3068253",
+      "check_id": "LIVE-MENTION-RATE",
+      "layer": "live_visibility",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Strong AI brand mention rate: 53.3% (95% CI: 30.1% - 75.2%, n=15)",
+      "evidence": [
+        {
+          "mention_rate": "53.3% (95% CI: 30.1% - 75.2%, n=15)",
+          "evaluations": 15,
+          "engines": [
+            "mock-ai"
+          ]
+        }
+      ],
+      "why_it_matters": "Measures how frequently your brand name is recommended or cited across multiple queries in generative engines (ChatGPT, Perplexity, Gemini, Claude). High mention rates indicate strong entity saliency.",
+      "fix": "Strengthen topical authority, earn citations in industry review publications (G2, Trustpilot, Forbes), and optimize passage structure so generative models associate your brand with high-intent solution queries.",
+      "effort": "L",
+      "impact": 5,
+      "references": [
+        "https://platform.openai.com/",
+        "https://docs.perplexity.ai/"
+      ]
+    },
+    {
+      "id": "LIVE-CITATION-RATE-ce5307de153d",
+      "check_id": "LIVE-CITATION-RATE",
+      "layer": "live_visibility",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "High AI citation rate: 40.0% (95% CI: 19.8% - 64.3%, n=15)",
+      "evidence": [
+        {
+          "citation_rate": "40.0% (95% CI: 19.8% - 64.3%, n=15)",
+          "evaluations": 15,
+          "engines": [
+            "mock-ai"
+          ]
+        }
+      ],
+      "why_it_matters": "Live generative engines cite primary sources in web cards and footnotes. A high citation rate drives direct referral traffic from users exploring AI-synthesized responses.",
+      "fix": "Ensure robots.txt permits AI search crawlers, provide original statistics and data tables, and structure authoritative answer-first passages with clear citation anchors.",
+      "effort": "L",
+      "impact": 5,
+      "references": [
+        "https://docs.perplexity.ai/docs/perplexitybot"
+      ]
+    },
+    {
+      "id": "LIVE-SHARE-OF-VOICE-76cd65b2c014",
+      "check_id": "LIVE-SHARE-OF-VOICE",
+      "layer": "live_visibility",
+      "severity": "medium",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Leading AI Share of Voice: 53.3%",
+      "evidence": [
+        {
+          "share_of_voice": "53.3%",
+          "evaluations": 15
+        }
+      ],
+      "why_it_matters": "Measures the proportion of queries where your brand is recognized versus competing products in the same niche.",
+      "fix": "Create high-value comparison pages and case studies addressing alternative solutions to capture conversational share.",
+      "effort": "L",
+      "impact": 4,
+      "references": []
+    },
+    {
+      "id": "LIVE-TOP-CITED-DOMAINS-c0a84173553f",
+      "check_id": "LIVE-TOP-CITED-DOMAINS",
+      "layer": "live_visibility",
+      "severity": "info",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Identified 4 top cited third-party domains in AI answers",
+      "evidence": [
+        {
+          "top_cited_domains": [
+            [
+              "g2.com",
+              15
+            ],
+            [
+              "forbes.com",
+              12
+            ],
+            [
+              "techradar.com",
+              8
+            ],
+            [
+              "books.toscrape.com",
+              6
+            ]
+          ],
+          "target_domain": "books.toscrape.com"
+        }
+      ],
+      "why_it_matters": "Identifies which third-party domains (e.g. Reddit, Wikipedia, G2, TechCrunch) AI engines prioritize when synthesizing recommendations for your category.",
+      "fix": "Prioritize digital PR and organic presence on the specific domains winning citations for your target queries.",
+      "effort": "M",
+      "impact": 3,
+      "references": []
+    },
+    {
+      "id": "CONT-THIN-CONTENT-5e686634e65d",
+      "check_id": "CONT-THIN-CONTENT",
+      "layer": "content",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Thin content: Page contains only 193 words (<250 words)",
+      "evidence": [
+        {
+          "word_count": 193,
+          "minimum_recommended": 250
+        }
+      ],
+      "why_it_matters": "Pages with less than 250 words offer little unique value to users, are flagged as low-quality under Google's Helpful Content guidelines, and are ignored by generative AI answer engines.",
+      "fix": "Expand thin pages with comprehensive answers, examples, or consolidate into parent category pages.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+      ]
+    },
+    {
+      "id": "TECH-CANONICAL-MISSING-1095aacdba3b",
+      "check_id": "TECH-CANONICAL-MISSING",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing rel='canonical' Link Tag",
+      "evidence": [
+        {
+          "error": "No rel='canonical' tag found in page HTML"
+        }
+      ],
+      "why_it_matters": "Without an explicit canonical tag, search engines must guess which version of a page to index, leading to duplicate content dilution across trailing slashes, HTTP/HTTPS, and query params.",
+      "fix": "Add a self-referencing <link rel='canonical' href='https://...'> tag in the <head>.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "TECH-TITLE-MISSING-efe286e09af9",
+      "check_id": "TECH-TITLE-MISSING",
+      "layer": "technical",
+      "severity": "critical",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing or Empty <title> Tag",
+      "evidence": [
+        {
+          "error": "Title tag is missing or whitespace only"
+        }
+      ],
+      "why_it_matters": "The <title> tag is one of the most critical on-page ranking signals and provides the clickable headline in search engine results and AI answer cards.",
+      "fix": "Add a unique, descriptive <title> tag inside the <head> of every HTML page.",
+      "effort": "S",
+      "impact": 5,
+      "references": [
+        "https://developers.google.com/search/docs/appearance/title-link"
+      ]
+    },
+    {
+      "id": "TECH-META-DESC-MISSING-a34552e0fdf7",
+      "check_id": "TECH-META-DESC-MISSING",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing Meta Description",
+      "evidence": [
+        {
+          "error": "No meta description tag found"
+        }
+      ],
+      "why_it_matters": "Meta descriptions provide the summary snippet in search results and help AI crawlers understand page intent before full parsing.",
+      "fix": "Add an enticing, descriptive <meta name='description' content='...'> tag.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/appearance/snippet"
+      ]
+    },
+    {
+      "id": "TECH-H1-MISSING-MULTI-61a930c8d269",
+      "check_id": "TECH-H1-MISSING-MULTI",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing <h1> heading tag",
+      "evidence": [
+        {
+          "h1_count": 0,
+          "error": "No <h1> heading tag found in page HTML"
+        }
+      ],
+      "why_it_matters": "Every indexable page should have exactly one descriptive <h1> tag serving as the main topic header for users, search crawlers, and screen readers.",
+      "fix": "Ensure each page contains exactly one <h1> element accurately describing the page subject.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/heading-tags"
+      ]
+    },
+    {
+      "id": "TECH-SCHEMA-TYPES-2474b1579140",
+      "check_id": "TECH-SCHEMA-TYPES",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Core Schema.org Type Coverage",
+      "evidence": [
+        {
+          "detected_types": []
+        }
+      ],
+      "why_it_matters": "No Schema.org entity types were detected on this page.",
+      "fix": "Deploy relevant Schema.org JSON-LD templates based on page intent.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://schema.org/docs/schemas.html"
+      ]
+    },
+    {
+      "id": "TECH-TTFB-efb0484b63c3",
+      "check_id": "TECH-TTFB",
+      "layer": "technical",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Time to First Byte (TTFB) Latency",
+      "evidence": [
+        {
+          "ttfb_ms": 612.2
+        }
+      ],
+      "why_it_matters": "High server response latency slows down crawling, burns crawl budget, degrades Core Web Vitals, and causes AI bots with short timeout thresholds (e.g. 800ms) to abort requests.",
+      "fix": "Optimize database queries, enable server-side caching, and utilize edge CDNs (Cloudflare/Fastly).",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://web.dev/articles/ttfb"
+      ]
+    },
+    {
+      "id": "TECH-VIEWPORT-acd2929a147c",
+      "check_id": "TECH-VIEWPORT",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Mobile Responsive Viewport Configuration",
+      "evidence": [
+        {
+          "error": "No valid viewport meta tag found"
+        }
+      ],
+      "why_it_matters": "Mobile-first indexing requires a responsive viewport tag so pages render correctly across smartphones, tablets, and mobile crawlers.",
+      "fix": "Add <meta name='viewport' content='width=device-width, initial-scale=1.0'> in the <head>.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing"
+      ]
+    },
+    {
+      "id": "TECH-SECURITY-HEADERS-4cfee74ed723",
+      "check_id": "TECH-SECURITY-HEADERS",
+      "layer": "technical",
+      "severity": "info",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing recommended security headers (HSTS / nosniff)",
+      "evidence": [
+        {
+          "missing_headers": [
+            "X-Content-Type-Options: nosniff"
+          ]
+        }
+      ],
+      "why_it_matters": "Security headers (HSTS, X-Content-Type-Options) protect visitors from clickjacking, MIME sniffing, and man-in-the-middle downgrade attacks.",
+      "fix": "Configure web server or CDN to send Strict-Transport-Security and X-Content-Type-Options headers.",
+      "effort": "S",
+      "impact": 1,
+      "references": [
+        "https://web.dev/articles/security-headers"
+      ]
+    },
+    {
+      "id": "GEO-RENDER-DIFF-TEXT-006bd5efaf4c",
+      "check_id": "GEO-RENDER-DIFF-TEXT",
+      "layer": "geo_readiness",
+      "severity": "medium",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Moderate client-side text hydration: 37.5% of text rendered via JS",
+      "evidence": [
+        {
+          "raw_word_count": 193,
+          "rendered_word_count": 309,
+          "content_missing_pct": "37.5%"
+        }
+      ],
+      "why_it_matters": "Many AI crawlers and indexing pipelines (e.g. GPTBot, PerplexityBot, Common Crawl) fetch raw HTML without running a full headless JavaScript browser. If key content requires client-side JavaScript to render, generative engines will completely miss that text.",
+      "fix": "Implement Server-Side Rendering (SSR), Static Site Generation (SSG), or Incremental Static Regeneration (ISR) so that primary content is present in the initial HTTP response payload.",
+      "effort": "L",
+      "impact": 5,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics",
+        "https://platform.openai.com/docs/bots"
+      ]
+    },
+    {
+      "id": "GEO-RENDER-DIFF-LINKS-8d4f1ea1a1e6",
+      "check_id": "GEO-RENDER-DIFF-LINKS",
+      "layer": "geo_readiness",
+      "severity": "high",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "73 links require JavaScript to discover",
+      "evidence": [
+        {
+          "raw_link_count": 0,
+          "rendered_link_count": 73,
+          "js_only_links_count": 73,
+          "sample_js_only_links": [
+            "catalogue/a-light-in-the-attic_1000/index.html",
+            "catalogue/category/books/academic_40/index.html",
+            "catalogue/category/books/add-a-comment_18/index.html",
+            "catalogue/category/books/adult-fiction_29/index.html",
+            "catalogue/category/books/art_25/index.html"
+          ]
+        }
+      ],
+      "why_it_matters": "AI and fast search crawlers that parse raw HTML will fail to discover these linked pages.",
+      "fix": "Ensure standard HTML `<a href>` elements are pre-rendered in the server HTML for all internal navigation and pagination links.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+      ]
+    },
+    {
+      "id": "GEO-TRAPPED-TEXT-9f5d648a3cda",
+      "check_id": "GEO-TRAPPED-TEXT",
+      "layer": "geo_readiness",
+      "severity": "medium",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Text Trapped in Canvas, Iframes, or Complex SVGs",
+      "evidence": [
+        {
+          "canvas_count": 0,
+          "iframe_count": 0
+        }
+      ],
+      "why_it_matters": "Text rendered inside <canvas> elements or loaded inside third-party <iframe> embeds is completely invisible to standard text extractors used by LLM search agents.",
+      "fix": "Provide server-rendered HTML text transcripts, data tables, or accessible DOM text alternatives alongside canvas visualizations or iframes.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://www.w3.org/WAI/WCAG21/Understanding/non-text-content.html"
+      ]
+    },
+    {
+      "id": "GEO-BOT-LATENCY-38659ec4d572",
+      "check_id": "GEO-BOT-LATENCY",
+      "layer": "geo_readiness",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Bot Response Latency (TTFB < 800ms for Real-Time AI Search)",
+      "evidence": [
+        {
+          "ttfb_ms": 612.2,
+          "status": "Fast bot response"
+        }
+      ],
+      "why_it_matters": "Real-time AI search bots (Perplexity, ChatGPT web search) operate on tight sub-second budgets while streaming answers to users. Pages with Time To First Byte (TTFB) > 800ms are frequently skipped or timed out during live search synthesis.",
+      "fix": "Optimize edge CDN caching, enable HTTP/2 or HTTP/3, and optimize backend database queries so that bot requests respond with TTFB under 500ms.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://web.dev/articles/ttfb"
+      ]
+    }
+  ],
+  "error": null
+}

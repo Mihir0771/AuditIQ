@@ -294,3 +294,83 @@ Think of a textbook:
 
 
 
+
+---
+
+## 14. Dynamic Proportional Weight Redistribution in Scoring
+
+### What it is
+A mathematical scoring technique where the relative weights of active evaluation dimensions are dynamically normalized so that their sum always equals 100%, regardless of whether optional dimensions (such as Live AI Visibility or PageSpeed) are present or absent.
+
+### Why it matters
+In real-world environments, not every audit has live AI API keys configured (e.g., zero-dollar local runs or strict intranet compliance). If an audit engine has 4 layers each weighted at 25%, and Layer 4 is unmeasured, naive engines do one of two flawed things:
+1. Hardcode Layer 4 to 0, which unfairly penalizes the website with a maximum score of 75/100.
+2. Hardcode Layer 4 to 100 or an arbitrary constant, which fabricates fake data.
+
+Dynamic proportional weight redistribution scales the remaining 3 layers proportionally so that each represents exactly $\frac{25}{25+25+25} = 33.33\%$ of the composite score.
+
+### How it works
+Given $K$ active layers out of all layers, each with base weight $w_i$:
+$$W_{\text{active}} = \sum_{j \in \text{active}} w_j$$
+$$w'_i = \frac{w_i}{W_{\text{active}}}$$
+$$\text{Composite Score} = \sum_{i \in \text{active}} w'_i \times S_i$$
+This preserves the exact relative priority between the active layers while keeping the total score rigorously bounded between 0 and 100.
+
+### The Analogy
+Imagine a university course with four equal grading components: Midterm (25%), Project (25%), Homework (25%), and Final Exam (25%). If a snowstorm cancels the Final Exam, the professor doesn't give everyone a zero for the final (dropping everyone to a C); nor do they give everyone an unearned 100%. Instead, they calculate each student's grade based on the three completed components, each now counting for one-third of the total grade.
+
+---
+
+## 15. Headless Browser PDF Generation via Playwright `@media print`
+
+### What it is
+Generating print-ready, high-resolution PDF documents directly from HTML and CSS by orchestrating a headless Chromium browser instance via Playwright, rather than using brittle and limited PDF rendering engines like ReportLab or WeasyPrint.
+
+### Why it matters
+Client and executive audit deliverables must look like high-end consulting publications with clean typography, page numbers, precise page breaks (`break-inside: avoid`), and custom headers/footers. Traditional Python PDF libraries lack modern CSS support (flexbox, grid, custom properties, SVG charts). By rendering an HTML/CSS template through headless Chromium, AuditIQ produces pixel-perfect PDFs identical to modern web designs.
+
+### How it works
+1. AuditIQ compiles an executive HTML document using Jinja2 templates, embedding SVG charts and inline CSS.
+2. Playwright launches a headless Chromium instance in an isolated browser context.
+3. It loads the rendered HTML and waits for the `networkidle` state to ensure all fonts and styles are applied.
+4. It calls `page.pdf()` with `@media print` emulation, enabling:
+   - Standard A4 / Letter page sizing with calibrated margins.
+   - Dynamic page numbering (`pageNumber` / `totalPages`) via Chromium's native footer templates.
+   - Preservation of background colors and CSS gradients (`print_background=True`).
+
+### The Analogy
+Think of ordering custom brochures from a master printer:
+- Using an old Python PDF library is like using a mechanical typewriter with fixed stamps and no layout preview.
+- Using Playwright Headless Chromium is like sending your exact Photoshop and InDesign layouts to a modern digital press that prints out every gradient, vector curve, and font with microscopic precision.
+
+---
+
+## 16. Server-Sent Events (SSE) for Real-Time Audit Progress Streaming
+
+### What it is
+A lightweight, standard HTTP streaming protocol where a server pushes real-time text events over a single, persistent HTTP connection to a client browser using the `text/event-stream` MIME type.
+
+### Why it matters
+A thorough dual audit takes between 15 and 60 seconds to crawl dozens of pages, execute 55 checks, and compute statistical scores. If a web UI sends a traditional HTTP POST and simply waits for a response, the user experiences an unresponsive spinner or encounters proxy gateway timeouts (HTTP 504).
+Using SSE, the server streams live status updates as each page is fetched and each check is run. The user sees a live terminal-style activity log and progressing percentage bar in real time.
+
+### How it works
+1. The client initiates an audit via `POST /api/v1/audits` and receives an `audit_id`.
+2. The client opens an EventSource connection to `GET /api/v1/audits/{id}/stream`.
+3. The FastAPI backend yields structured SSE messages:
+   ```http
+   event: progress
+   data: {"stage": "crawling", "current_page": 12, "max_pages": 50, "percent": 24}
+
+   event: finding
+   data: {"id": "GEO-BOT-001", "severity": "critical", "title": "AI Bot Triad Failure"}
+
+   event: complete
+   data: {"audit_id": "3cb5c88e22", "composite_score": 88.5}
+   ```
+4. The web dashboard dynamically updates without polling or reloading.
+
+### The Analogy
+Imagine tracking an online food delivery order:
+- A traditional HTTP request is like placing an order and having no updates until the doorbell rings 45 minutes later—you don't know if the restaurant accepted it or canceled it.
+- Server-Sent Events is like a live map showing: *"Order received"*, *"Driver is at the restaurant"*, *"Driver is 3 blocks away"*, giving you real-time visibility every step of the journey.

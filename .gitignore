@@ -68,6 +68,8 @@ data/
 snapshots/
 reports/*.pdf
 reports/*.html
+reports/*.json
+reports/*.csv
 output/
 temp/
 research/outputs/
