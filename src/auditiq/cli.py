@@ -190,6 +190,7 @@ def audit(
         findings=findings,
         total_pages_crawled=crawl_result.total_pages_crawled,
         active_layers=active_layers,
+        registered_checks=default_registry.get_checks(),
     )
 
     # Display Score Card Table

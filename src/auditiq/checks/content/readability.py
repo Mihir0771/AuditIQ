@@ -80,10 +80,21 @@ class ReadabilityCheck(BaseCheck):
         if not body:
             return []
 
-        # Extract clean text from paragraphs
+        # Extract clean text from paragraphs or semantic content containers
         paragraphs = [p.text(strip=True) for p in body.css("p") if len(p.text(strip=True)) > 20]
-        full_text = " ".join(paragraphs)
-        if not full_text:
+        if paragraphs:
+            full_text = " ".join(paragraphs)
+        else:
+            # Fallback for modern SPAs and documentation layouts lacking standard <p> wrappers
+            content_nodes = body.css(
+                "article, main, section, [role='main'], div.content, div.post, div.markdown-body"
+            )
+            candidate_text = [
+                n.text(strip=True) for n in content_nodes if len(n.text(strip=True)) > 50
+            ]
+            full_text = " ".join(candidate_text) if candidate_text else body.text(strip=True)
+
+        if not full_text or len(full_text.split()) < 30:
             return []
 
         words = re.findall(r"\b[a-zA-Z]+\b", full_text)

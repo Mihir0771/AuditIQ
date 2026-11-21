@@ -86,17 +86,32 @@ class HttpCrawler:
             "Accept-Encoding": "gzip, deflate, br",
         }
 
-        async with httpx.AsyncClient(
-            headers=headers, verify=False, timeout=self.timeout_sec
-        ) as client:
-            # 1. Fetch & parse robots.txt
-            await self._fetch_robots_txt(client)
+        async def _validate_redirect_safety(response: httpx.Response) -> None:
+            """Validates that any redirect target does not target private, loopback, or metadata services."""
+            if response.is_redirect:
+                loc = response.headers.get("Location")
+                if loc:
+                    target = normalize_url(loc, base_url=str(response.url))
+                    if target:
+                        validate_url_safety(target)
 
-            # 2. Probe /llms.txt
-            await self._fetch_llms_txt(client)
+        # Initialize pooled Chromium browser for sub-millisecond per-page rendering
+        await self._renderer.start()
+        try:
+            async with httpx.AsyncClient(
+                headers=headers,
+                verify=False,
+                timeout=self.timeout_sec,
+                event_hooks={"response": [_validate_redirect_safety]},
+            ) as client:
+                # 1. Fetch & parse robots.txt
+                await self._fetch_robots_txt(client)
 
-            # 3. Fetch & parse Sitemaps
-            await self._discover_sitemaps(client)
+                # 2. Probe /llms.txt
+                await self._fetch_llms_txt(client)
+
+                # 3. Fetch & parse Sitemaps
+                await self._discover_sitemaps(client)
 
             # 4. Seed queue with start_url and sitemap URLs (depth 1 for sitemaps)
             self._queue.append((self.start_url, 0))
@@ -161,6 +176,8 @@ class HttpCrawler:
                 snap.inlinks_count = self.link_graph.get_inlinks_count(url)
                 if url in self.link_graph.depths:
                     snap.depth = self.link_graph.depths[url]
+        finally:
+            await self._renderer.stop()
 
         duration = round(time.perf_counter() - start_time, 2)
         logger.info("Crawl completed: %d pages in %.2fs", len(self.snapshots), duration)

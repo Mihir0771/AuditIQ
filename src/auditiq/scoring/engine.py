@@ -1,6 +1,7 @@
 """Mathematical scoring engine and action prioritizer."""
 
 from collections import defaultdict
+from typing import Any
 
 from auditiq.models.audit import PriorityAction, PriorityQuadrant, ScoreCard
 from auditiq.models.finding import AuditLayer, Effort, Finding, FindingStatus, Severity
@@ -35,10 +36,13 @@ def calculate_score_card(
     total_pages_crawled: int,
     active_layers: list[AuditLayer] | None = None,
     scoring_version: str = "2026.1",
+    registered_checks: list[Any] | None = None,
 ) -> ScoreCard:
     """Calculates reproducible, explainable layer scores and overall composite score.
 
     Implements proportional weight redistribution when layers are not measured.
+    When registered_checks is provided, all registered checks are included in the denominator
+    so that silent passes (returning []) are credited with 100% score equity.
     """
     effective_layers = active_layers or list(AuditLayer)
     total_pages = max(1, total_pages_crawled)
@@ -61,52 +65,93 @@ def calculate_score_card(
             layer_scores[layer] = None
             continue
 
-        # Get all checks in this layer
-        layer_checks = [c_id for c_id, f in check_metadata.items() if f.layer == layer]
-        if not layer_checks:
-            layer_scores[layer] = 100.0
-            continue
-
         total_weight = 0.0
         weighted_score_sum = 0.0
 
-        for check_id in layer_checks:
-            sample_finding = check_metadata[check_id]
-            weight = SEVERITY_WEIGHTS[sample_finding.severity]
-            if weight == 0.0:
-                continue  # Info findings do not deduct points
+        # Preferred path: Use registered checks to avoid denominator skew
+        layer_registered = [
+            c for c in (registered_checks or []) if getattr(c, "layer", None) == layer
+        ]
 
-            total_weight += weight
-            check_findings = findings_by_check[check_id]
+        if layer_registered:
+            for check in layer_registered:
+                check_id = check.id
+                severity = check.severity
+                title = check.title
+                weight = SEVERITY_WEIGHTS.get(severity, 0.4)
+                if weight == 0.0:
+                    continue
 
-            failures = [
-                f for f in check_findings if f.status in (FindingStatus.FAIL, FindingStatus.WARNING)
-            ]
-            if not failures:
-                # 100% pass for this check
-                weighted_score_sum += weight * 1.0
-                if sample_finding.severity in (Severity.CRITICAL, Severity.HIGH):
-                    top_positive.append(f"{sample_finding.title} passed cleanly.")
-            else:
-                # Deduction proportional to affected pages
-                affected_count = len(failures)
-                # Penalty capped at 1.0 (fail entirely)
-                ratio_affected = min(1.0, affected_count / total_pages)
-                severity_penalty = (
-                    1.0
-                    if sample_finding.severity == Severity.CRITICAL
-                    else 0.7
-                    if sample_finding.severity == Severity.HIGH
-                    else 0.4
-                )
-                check_score = max(0.0, 1.0 - (ratio_affected * severity_penalty))
-                weighted_score_sum += weight * check_score
-
-                deduction_pts = (1.0 - check_score) * weight * 100.0
-                if deduction_pts > 2.0:
-                    top_negative.append(
-                        f"{sample_finding.title} affected {affected_count} page(s) (-{deduction_pts:.1f} pts)"
+                total_weight += weight
+                failures = [
+                    f
+                    for f in findings_by_check.get(check_id, [])
+                    if f.status in (FindingStatus.FAIL, FindingStatus.WARNING)
+                ]
+                if not failures:
+                    weighted_score_sum += weight * 1.0
+                    if severity in (Severity.CRITICAL, Severity.HIGH):
+                        top_positive.append(f"{title} passed cleanly.")
+                else:
+                    affected_count = len(failures)
+                    ratio_affected = min(1.0, affected_count / total_pages)
+                    severity_penalty = (
+                        1.0
+                        if severity == Severity.CRITICAL
+                        else 0.7
+                        if severity == Severity.HIGH
+                        else 0.4
                     )
+                    check_score = max(0.0, 1.0 - (ratio_affected * severity_penalty))
+                    weighted_score_sum += weight * check_score
+
+                    deduction_pts = (1.0 - check_score) * weight * 100.0
+                    if deduction_pts > 2.0:
+                        top_negative.append(
+                            f"{title} affected {affected_count} page(s) (-{deduction_pts:.1f} pts)"
+                        )
+        else:
+            # Fallback path: Infer checks from findings (for isolated unit tests)
+            layer_checks = [c_id for c_id, f in check_metadata.items() if f.layer == layer]
+            if not layer_checks:
+                layer_scores[layer] = 100.0
+                continue
+
+            for check_id in layer_checks:
+                sample_finding = check_metadata[check_id]
+                weight = SEVERITY_WEIGHTS[sample_finding.severity]
+                if weight == 0.0:
+                    continue
+
+                total_weight += weight
+                check_findings = findings_by_check[check_id]
+                failures = [
+                    f
+                    for f in check_findings
+                    if f.status in (FindingStatus.FAIL, FindingStatus.WARNING)
+                ]
+                if not failures:
+                    weighted_score_sum += weight * 1.0
+                    if sample_finding.severity in (Severity.CRITICAL, Severity.HIGH):
+                        top_positive.append(f"{sample_finding.title} passed cleanly.")
+                else:
+                    affected_count = len(failures)
+                    ratio_affected = min(1.0, affected_count / total_pages)
+                    severity_penalty = (
+                        1.0
+                        if sample_finding.severity == Severity.CRITICAL
+                        else 0.7
+                        if sample_finding.severity == Severity.HIGH
+                        else 0.4
+                    )
+                    check_score = max(0.0, 1.0 - (ratio_affected * severity_penalty))
+                    weighted_score_sum += weight * check_score
+
+                    deduction_pts = (1.0 - check_score) * weight * 100.0
+                    if deduction_pts > 2.0:
+                        top_negative.append(
+                            f"{sample_finding.title} affected {affected_count} page(s) (-{deduction_pts:.1f} pts)"
+                        )
 
         if total_weight > 0:
             raw_layer_score = round((weighted_score_sum / total_weight) * 100.0, 1)

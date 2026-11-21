@@ -1,6 +1,7 @@
-"""Multi-engine trial runner and empirical visibility aggregator."""
+"""Multi-engine trial runner and empirical visibility aggregator with exponential backoff."""
 
 import asyncio
+import logging
 from collections import Counter
 
 from pydantic import BaseModel, Field
@@ -13,6 +14,8 @@ from auditiq.visibility.providers.mock import MockAnswerEngine
 from auditiq.visibility.providers.openai_engine import OpenAIEngine
 from auditiq.visibility.providers.perplexity_engine import PerplexityEngine
 from auditiq.visibility.stats import WilsonScoreInterval, compute_wilson_interval
+
+logger = logging.getLogger("auditiq.visibility.runner")
 
 
 class VisibilitySummary(BaseModel):
@@ -29,7 +32,10 @@ class VisibilitySummary(BaseModel):
 
 
 class VisibilityRunner:
-    """Coordinates parallel query execution across configured answer engines."""
+    """Coordinates parallel query execution across configured answer engines
+
+    with retry and backoff protection against rate limits (HTTP 429) and network timeouts.
+    """
 
     def __init__(
         self,
@@ -75,11 +81,43 @@ class VisibilityRunner:
 
         async def _run_single(engine: BaseAnswerEngine, q: GeneratedQuery) -> EngineQueryResponse:
             async with sem:
-                return await engine.query(
-                    query_text=q.query,
-                    brand_name=q.expected_brand,
-                    target_domain=q.target_domain,
-                    archetype=q.archetype,
+                # Up to 3 attempts with exponential backoff on transient errors
+                for attempt in range(3):
+                    try:
+                        return await engine.query(
+                            query_text=q.query,
+                            brand_name=q.expected_brand,
+                            target_domain=q.target_domain,
+                            archetype=q.archetype,
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            "Visibility query to engine '%s' failed (attempt %d/3): %s",
+                            engine.engine_name,
+                            attempt + 1,
+                            e,
+                        )
+                        if attempt < 2:
+                            await asyncio.sleep(1.0 * (2**attempt))
+                        else:
+                            # Return safe fallback response so gather never fails
+                            return EngineQueryResponse(
+                                query=q.query,
+                                engine_name=engine.engine_name,
+                                raw_text=f"Error contacting {engine.engine_name}: {e}",
+                                error=str(e),
+                                brand_mentioned=False,
+                                domain_cited=False,
+                                latency_ms=0.0,
+                            )
+                return EngineQueryResponse(
+                    query=q.query,
+                    engine_name=engine.engine_name,
+                    raw_text="Max retry attempts exceeded",
+                    error="Max retry attempts exceeded",
+                    brand_mentioned=False,
+                    domain_cited=False,
+                    latency_ms=0.0,
                 )
 
         tasks = []
@@ -98,26 +136,34 @@ class VisibilityRunner:
         citation_interval = compute_wilson_interval(citations, total)
 
         # Count cited domains
-        domain_counter: Counter[str] = Counter()
-        latencies = []
+        all_cited: list[str] = []
         for r in results:
-            latencies.append(r.latency_ms)
-            for d in r.cited_domains:
-                domain_counter[d] += 1
+            all_cited.extend(r.cited_domains)
 
-        top_domains = domain_counter.most_common(10)
-        avg_lat = round(sum(latencies) / max(1, len(latencies)), 1)
-        sov = round((mentions / max(1, total)) * 100, 1)
+        top_domains = Counter(all_cited).most_common(10)
+
+        # Competitive Share of Voice
+        target_citations = sum(1 for r in results if r.domain_cited)
+        competitor_citations = len(all_cited)
+        total_market_citations = target_citations + competitor_citations
+        sov = (
+            round((target_citations / total_market_citations) * 100.0, 1)
+            if total_market_citations > 0
+            else 0.0
+        )
+
+        latencies = [r.latency_ms for r in results if r.latency_ms > 0]
+        avg_latency = round(sum(latencies) / len(latencies), 1) if latencies else 0.0
 
         return VisibilitySummary(
             brand_name=brand_name,
             target_domain=target_domain,
-            active_engines=[e.name for e in self.engines],
+            active_engines=[e.engine_name for e in self.engines],
             total_evaluations=total,
             mention_rate=mention_interval,
             citation_rate=citation_interval,
             share_of_voice=sov,
             top_cited_domains=top_domains,
-            average_latency_ms=avg_lat,
+            average_latency_ms=avg_latency,
             responses=results,
         )

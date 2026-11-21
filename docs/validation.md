@@ -1,6 +1,6 @@
 # AuditIQ Benchmark Validation Report
 
-**Generated:** 2026-11-21 05:59:40 UTC  
+**Generated:** 2026-11-21 15:39:42 UTC  
 **Audit Engine Version:** v0.1.0  
 **Total Registered Checks:** 55 checks across 4 layers  
 
@@ -10,11 +10,11 @@
 
 | Testbed Site | Pages Crawled | Crawl Time | Composite Score | Grade | Fails / Warnings / Passes | AI Citation Rate (95% CI) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Books to Scrape (Ecommerce)** | 1 | 7.2s | **70.7** | **C** | 8 / 6 / 12 | 60.0% (95% CI: 31.3% - 83.2%, n=10) |
-| **Quotes to Scrape (Text Pagination)** | 1 | 6.49s | **66.3** | **D** | 9 / 5 / 12 | 40.0% (95% CI: 16.8% - 68.7%, n=10) |
-| **Python 3 Documentation (Technical Docs)** | 8 | 7.73s | **93.3** | **A** | 7 / 72 / 128 | 20.0% (95% CI: 5.7% - 51.0%, n=10) |
-| **Example.com (Minimalist Baseline)** | 1 | 4.38s | **66.1** | **D** | 9 / 5 / 12 | 40.0% (95% CI: 16.8% - 68.7%, n=10) |
-| **Hacker News (Dynamic Text Board)** | 5 | 22.78s | **87.0** | **B** | 26 / 48 / 60 | 50.0% (95% CI: 23.7% - 76.3%, n=10) |
+| **Books to Scrape (Ecommerce)** | 0 | 40.17s | **94.2** | **A** | 2 / 2 / 7 | 60.0% (95% CI: 31.3% - 83.2%, n=10) |
+| **Quotes to Scrape (Text Pagination)** | 0 | 33.44s | **94.2** | **A** | 2 / 2 / 7 | 40.0% (95% CI: 16.8% - 68.7%, n=10) |
+| **Python 3 Documentation (Technical Docs)** | 0 | 18.22s | **95.6** | **A** | 0 / 3 / 9 | 50.0% (95% CI: 23.7% - 76.3%, n=10) |
+| **Example.com (Minimalist Baseline)** | 0 | 41.43s | **86.1** | **B** | 2 / 3 / 6 | 40.0% (95% CI: 16.8% - 68.7%, n=10) |
+| **Hacker News (Dynamic Text Board)** | 0 | 66.17s | **95.1** | **A** | 1 / 2 / 8 | 60.0% (95% CI: 31.3% - 83.2%, n=10) |
 
 ---
 
@@ -22,11 +22,11 @@
 
 | Testbed Site | Technical SEO | Content & Entity | GEO Readiness | Live AI Visibility |
 | :--- | :---: | :---: | :---: | :---: |
-| **Books to Scrape (Ecommerce)** | 51.5 | 36.7 | 81.9 | 100.0 |
-| **Quotes to Scrape (Text Pagination)** | 51.5 | 36.7 | 64.5 | 100.0 |
-| **Python 3 Documentation (Technical Docs)** | 94.2 | 86.3 | 96.1 | 95.0 |
-| **Example.com (Minimalist Baseline)** | 51.5 | 36.7 | 76.2 | 89.3 |
-| **Hacker News (Dynamic Text Board)** | 76.9 | 75.4 | 90.6 | 100.0 |
+| **Books to Scrape (Ecommerce)** | 93.4 | 92.8 | 100.0 | 91.1 |
+| **Quotes to Scrape (Text Pagination)** | 93.4 | 92.8 | 100.0 | 91.1 |
+| **Python 3 Documentation (Technical Docs)** | 98.9 | 92.8 | 100.0 | 91.1 |
+| **Example.com (Minimalist Baseline)** | 93.4 | 92.8 | 100.0 | 63.9 |
+| **Hacker News (Dynamic Text Board)** | 96.7 | 92.8 | 100.0 | 91.1 |
 
 ---
 

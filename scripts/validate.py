@@ -88,6 +88,7 @@ async def run_benchmark(site: dict[str, object]) -> dict[str, object]:
         findings=findings,
         total_pages_crawled=crawl_result.total_pages_crawled,
         active_layers=layers,
+        registered_checks=default_registry.get_checks(),
     )
 
     duration = round(time.perf_counter() - start_time, 2)

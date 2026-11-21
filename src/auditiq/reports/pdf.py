@@ -1,13 +1,13 @@
 """Print-ready PDF report generation via Headless Chromium."""
 
 import asyncio
-import contextlib
 from pathlib import Path
 
+import jinja2
 from playwright.async_api import async_playwright
 
 from auditiq.models.audit import AuditRecord
-from auditiq.reports.html import generate_html_report
+from auditiq.reports.html import load_branding_config
 
 
 async def generate_pdf_report_async(
@@ -19,28 +19,27 @@ async def generate_pdf_report_async(
     out_file = output_path or Path(f"reports/report_{record.id}.pdf")
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    # First generate the HTML report
-    temp_html = out_file.parent / f"_temp_{record.id}.html"
-    generate_html_report(record, output_path=temp_html, branding_path=branding_path)
+    # Render HTML directly into memory without file I/O latency
+    branding = load_branding_config(branding_path)
+    templates_dir = Path(__file__).parent / "templates"
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(str(templates_dir)),
+        autoescape=jinja2.select_autoescape(["html", "xml"]),
+    )
+    template = env.get_template("report.html.jinja2")
+    rendered_html = template.render(record=record, branding=branding)
 
-    try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            # Convert file path to file:// URI for Windows/Unix compatibility
-            file_uri = temp_html.resolve().as_uri()
-            await page.goto(file_uri, wait_until="load")
-            await page.pdf(
-                path=str(out_file),
-                print_background=True,
-                format="A4",
-                margin={"top": "12mm", "bottom": "12mm", "left": "12mm", "right": "12mm"},
-            )
-            await browser.close()
-    finally:
-        if temp_html.exists():
-            with contextlib.suppress(Exception):
-                temp_html.unlink()
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        await page.set_content(rendered_html, wait_until="domcontentloaded")
+        await page.pdf(
+            path=str(out_file),
+            print_background=True,
+            format="A4",
+            margin={"top": "12mm", "bottom": "12mm", "left": "12mm", "right": "12mm"},
+        )
+        await browser.close()
 
     return out_file
 

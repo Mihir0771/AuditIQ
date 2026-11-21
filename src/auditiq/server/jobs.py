@@ -5,6 +5,7 @@ import contextlib
 import hashlib
 import json
 import logging
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -40,13 +41,75 @@ class AuditJob(BaseModel):
 
 
 class JobManager:
-    """Manages active background audit jobs and event distribution."""
+    """Manages active background audit jobs, persistent SQLite state, and event distribution."""
 
     def __init__(self, reports_dir: Path | None = None) -> None:
         self.reports_dir = reports_dir or Path("reports")
         self.reports_dir.mkdir(parents=True, exist_ok=True)
+        self.db_path = self.reports_dir / "jobs.db"
+        self._concurrency_sem = asyncio.Semaphore(2)
+        self._init_db()
         self.jobs: dict[str, AuditJob] = {}
         self.event_queues: dict[str, list[asyncio.Queue[dict[str, Any]]]] = {}
+        self._load_persisted_jobs()
+
+    def _init_db(self) -> None:
+        """Initializes persistent SQLite database for audit job state tracking."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS audit_jobs (
+                    id TEXT PRIMARY KEY,
+                    url TEXT,
+                    brand_name TEXT,
+                    status TEXT,
+                    progress_pct INTEGER,
+                    message TEXT,
+                    created_at TEXT,
+                    error TEXT
+                );
+            """)
+            conn.commit()
+
+    def _load_persisted_jobs(self) -> None:
+        """Recovers historical and active jobs from SQLite database across restarts."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT id, url, brand_name, status, progress_pct, message, created_at, error FROM audit_jobs"
+                )
+                for row in cur.fetchall():
+                    jid, url, brand, status_str, pct, msg, created_str, err = row
+                    try:
+                        status_enum = AuditStatus(status_str)
+                    except ValueError:
+                        status_enum = AuditStatus.COMPLETED
+
+                    rec = None
+                    disk_file = self.reports_dir / f"audit_{jid}.json"
+                    if disk_file.exists():
+                        with contextlib.suppress(Exception), open(disk_file, encoding="utf-8") as f:
+                            rec = AuditRecord.model_validate(json.load(f))
+
+                    try:
+                        created_dt = datetime.fromisoformat(created_str)
+                    except Exception:
+                        created_dt = datetime.now(UTC)
+
+                    self.jobs[jid] = AuditJob(
+                        id=jid,
+                        url=url,
+                        brand_name=brand or "",
+                        status=status_enum,
+                        progress_pct=pct,
+                        message=msg or "",
+                        created_at=created_dt,
+                        error=err,
+                        record=rec,
+                    )
+        except Exception as e:
+            logger.warning("Failed to recover jobs from SQLite: %s", e)
 
     def get_job(self, job_id: str) -> AuditJob | None:
         if job_id in self.jobs:
@@ -138,6 +201,22 @@ class JobManager:
             job.status = event_data.get("status", job.status)
             job.progress_pct = event_data.get("progress_pct", job.progress_pct)
             job.message = event_data.get("message", job.message)
+            if "error" in event_data:
+                job.error = event_data.get("error")
+
+            # Persist state update to SQLite
+            with contextlib.suppress(Exception), sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    "UPDATE audit_jobs SET status=?, progress_pct=?, message=?, error=? WHERE id=?",
+                    (
+                        job.status.value if hasattr(job.status, "value") else str(job.status),
+                        job.progress_pct,
+                        job.message,
+                        job.error,
+                        job_id,
+                    ),
+                )
+                conn.commit()
 
         queues = self.event_queues.get(job_id, [])
         for q in queues:
@@ -165,6 +244,23 @@ class JobManager:
         )
         self.jobs[job_id] = job
 
+        # Persist new job to SQLite
+        with contextlib.suppress(Exception), sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO audit_jobs (id, url, brand_name, status, progress_pct, message, created_at, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    job_id,
+                    target_url,
+                    brand_name,
+                    job.status.value,
+                    0,
+                    "Queued",
+                    job.created_at.isoformat(),
+                    None,
+                ),
+            )
+            conn.commit()
+
         # Launch background task
         asyncio.create_task(
             self._execute_audit(
@@ -190,160 +286,164 @@ class JobManager:
         max_depth: int,
         mock_ai: bool,
     ) -> None:
-        try:
-            # Register check suites
-            register_tech_checks()
-            register_content_checks()
-            register_geo_checks()
-            register_live_checks()
+        async with self._concurrency_sem:
+            try:
+                # Register check suites
+                register_tech_checks()
+                register_content_checks()
+                register_geo_checks()
+                register_live_checks()
 
-            config = AuditConfig(
-                target_url=target_url,
-                brand_name=brand_name,
-                layers=layers,
-                max_pages=max_pages,
-                max_depth=max_depth,
-            )
-
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.CRAWLING,
-                    "progress_pct": 10,
-                    "message": f"Politely crawling {target_url} (max {max_pages} pages)...",
-                },
-            )
-
-            # 1. Crawl
-            crawler = HttpCrawler(start_url=target_url, max_pages=max_pages, max_depth=max_depth)
-
-            def _progress(url: str, current: int, total: int) -> None:
-                pct = min(40, 10 + int((current / max(1, total)) * 30))
-                asyncio.create_task(
-                    self.broadcast(
-                        job_id,
-                        {
-                            "status": AuditStatus.CRAWLING,
-                            "progress_pct": pct,
-                            "message": f"Crawled ({current}/{total}): {url}",
-                        },
-                    )
+                config = AuditConfig(
+                    target_url=target_url,
+                    brand_name=brand_name,
+                    layers=layers,
+                    max_pages=max_pages,
+                    max_depth=max_depth,
                 )
 
-            crawl_result = await crawler.crawl(progress_callback=_progress)
+                await self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.CRAWLING,
+                        "progress_pct": 10,
+                        "message": f"Politely crawling {target_url} (max {max_pages} pages)...",
+                    },
+                )
 
-            # 2. Live Visibility (if active)
-            visibility_summary = None
-            if AuditLayer.LIVE_VISIBILITY in layers:
+                # 1. Crawl
+                crawler = HttpCrawler(
+                    start_url=target_url, max_pages=max_pages, max_depth=max_depth
+                )
+
+                def _progress(url: str, current: int, total: int) -> None:
+                    pct = min(40, 10 + int((current / max(1, total)) * 30))
+                    asyncio.create_task(
+                        self.broadcast(
+                            job_id,
+                            {
+                                "status": AuditStatus.CRAWLING,
+                                "progress_pct": pct,
+                                "message": f"Crawled ({current}/{total}): {url}",
+                            },
+                        )
+                    )
+
+                crawl_result = await crawler.crawl(progress_callback=_progress)
+
+                # 2. Live Visibility (if active)
+                visibility_summary = None
+                if AuditLayer.LIVE_VISIBILITY in layers:
+                    await self.broadcast(
+                        job_id,
+                        {
+                            "status": AuditStatus.CHECKING,
+                            "progress_pct": 45,
+                            "message": "Querying AI Answer Engines for real-time visibility...",
+                        },
+                    )
+                    runner = VisibilityRunner(use_mock_fallback=mock_ai)
+                    if runner.has_available_engines():
+                        queries = PromptGenerator.generate_queries(
+                            crawl_result, brand_name=brand_name or None, max_queries=15
+                        )
+                        visibility_summary = await runner.run(queries)
+
+                # 3. Checks evaluation
                 await self.broadcast(
                     job_id,
                     {
                         "status": AuditStatus.CHECKING,
-                        "progress_pct": 45,
-                        "message": "Querying AI Answer Engines for real-time visibility...",
+                        "progress_pct": 60,
+                        "message": "Evaluating Technical, Content, and GEO check rules...",
                     },
                 )
-                runner = VisibilityRunner(use_mock_fallback=mock_ai)
-                if runner.has_available_engines():
-                    queries = PromptGenerator.generate_queries(
-                        crawl_result, brand_name=brand_name or None, max_queries=15
-                    )
-                    visibility_summary = await runner.run(queries)
+                findings = await default_registry.run_checks(
+                    crawl_result=crawl_result,
+                    config=config,
+                    active_layers=layers,
+                    visibility_summary=visibility_summary,
+                )
 
-            # 3. Checks evaluation
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.CHECKING,
-                    "progress_pct": 60,
-                    "message": "Evaluating Technical, Content, and GEO check rules...",
-                },
-            )
-            findings = await default_registry.run_checks(
-                crawl_result=crawl_result,
-                config=config,
-                active_layers=layers,
-                visibility_summary=visibility_summary,
-            )
+                # 4. Scoring & Prioritization
+                await self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.SCORING,
+                        "progress_pct": 80,
+                        "message": "Computing composite mathematical score & prioritizing actions...",
+                    },
+                )
+                score_card = calculate_score_card(
+                    findings=findings,
+                    total_pages_crawled=crawl_result.total_pages_crawled,
+                    active_layers=layers,
+                    registered_checks=default_registry.get_checks(),
+                )
 
-            # 4. Scoring & Prioritization
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.SCORING,
-                    "progress_pct": 80,
-                    "message": "Computing composite mathematical score & prioritizing actions...",
-                },
-            )
-            score_card = calculate_score_card(
-                findings=findings,
-                total_pages_crawled=crawl_result.total_pages_crawled,
-                active_layers=layers,
-            )
+                # 5. Build Record & Reports
+                await self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.REPORTING,
+                        "progress_pct": 90,
+                        "message": "Generating white-label report and structured JSON...",
+                    },
+                )
 
-            # 5. Build Record & Reports
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.REPORTING,
-                    "progress_pct": 90,
-                    "message": "Generating white-label report and structured JSON...",
-                },
-            )
+                record = AuditRecord(
+                    id=job_id,
+                    config=config,
+                    status=AuditStatus.COMPLETED,
+                    completed_at=datetime.now(UTC),
+                    score_card=score_card,
+                    findings=findings,
+                    crawl_summary={
+                        "total_pages": crawl_result.total_pages_crawled,
+                        "duration_sec": crawl_result.crawl_duration_sec,
+                        "sitemap_urls_count": len(crawl_result.sitemap_urls),
+                        "base_domain": crawl_result.base_domain,
+                    },
+                )
 
-            record = AuditRecord(
-                id=job_id,
-                config=config,
-                status=AuditStatus.COMPLETED,
-                completed_at=datetime.now(UTC),
-                score_card=score_card,
-                findings=findings,
-                crawl_summary={
-                    "total_pages": crawl_result.total_pages_crawled,
-                    "duration_sec": crawl_result.crawl_duration_sec,
-                    "sitemap_urls_count": len(crawl_result.sitemap_urls),
-                    "base_domain": crawl_result.base_domain,
-                },
-            )
+                # Save on disk
+                json_file = self.reports_dir / f"audit_{job_id}.json"
+                with open(json_file, "w", encoding="utf-8") as f:
+                    f.write(record.model_dump_json(indent=2))
 
-            # Save on disk
-            json_file = self.reports_dir / f"audit_{job_id}.json"
-            with open(json_file, "w", encoding="utf-8") as f:
-                f.write(record.model_dump_json(indent=2))
+                html_file = self.reports_dir / f"report_{job_id}.html"
+                generate_html_report(record, output_path=html_file)
 
-            html_file = self.reports_dir / f"report_{job_id}.html"
-            generate_html_report(record, output_path=html_file)
+                job = self.jobs.get(job_id)
+                if job:
+                    job.record = record
 
-            job = self.jobs.get(job_id)
-            if job:
-                job.record = record
+                await self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.COMPLETED,
+                        "progress_pct": 100,
+                        "message": f"Audit complete! Score: {score_card.letter_grade} ({score_card.composite_score}/100)",
+                        "score": score_card.composite_score,
+                        "grade": score_card.letter_grade,
+                    },
+                )
 
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.COMPLETED,
-                    "progress_pct": 100,
-                    "message": f"Audit complete! Score: {score_card.letter_grade} ({score_card.composite_score}/100)",
-                    "score": score_card.composite_score,
-                    "grade": score_card.letter_grade,
-                },
-            )
-
-        except Exception as e:
-            logger.error("Audit %s failed: %s", job_id, e, exc_info=True)
-            job = self.jobs.get(job_id)
-            if job:
-                job.status = AuditStatus.FAILED
-                job.error = str(e)
-            await self.broadcast(
-                job_id,
-                {
-                    "status": AuditStatus.FAILED,
-                    "progress_pct": 100,
-                    "message": f"Audit failed: {e}",
-                    "error": str(e),
-                },
-            )
+            except Exception as e:
+                logger.error("Audit %s failed: %s", job_id, e, exc_info=True)
+                job = self.jobs.get(job_id)
+                if job:
+                    job.status = AuditStatus.FAILED
+                    job.error = str(e)
+                await self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.FAILED,
+                        "progress_pct": 100,
+                        "message": f"Audit failed: {e}",
+                        "error": str(e),
+                    },
+                )
 
 
 job_manager = JobManager()

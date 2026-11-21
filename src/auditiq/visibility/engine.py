@@ -29,6 +29,11 @@ class BaseAnswerEngine(ABC):
     def __init__(self, name: str) -> None:
         self.name = name
 
+    @property
+    def engine_name(self) -> str:
+        """Alias for name for backward compatibility."""
+        return self.name
+
     @abstractmethod
     def is_available(self) -> bool:
         """Returns True if the engine's credentials or mock environment are active."""
