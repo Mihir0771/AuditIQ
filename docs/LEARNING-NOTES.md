@@ -182,3 +182,48 @@ Imagine walking up to an information desk at an airport and asking: *"What gate 
 - **Bad structure**: The agent tells you the history of Boeing and the weather in Chicago before finally telling you Gate B12.
 - **Answer-first structure**: The agent says *"Gate B12, boarding in 20 minutes"* and then hands you the map.
 
+---
+
+## 9. Flesch Reading Ease & Why AI Answer Engines Prioritize Comprehension
+
+### What it is
+The **Flesch Reading Ease** formula measures how easy a text is to comprehend on a scale of 0 to 100. It calculates the relationship between Average Sentence Length (ASL = words / sentences) and Average Syllables per Word (ASW = syllables / words).
+A score of 60–70 is considered standard plain English (8th grade level). A score below 30 indicates dense, academic, or bureaucratic text.
+
+### Why it matters
+Generative AI models synthesize information for broad audiences. When an LLM evaluates three competing web pages to answer a user's question, it prioritizes content written with high clarity and low syntactic ambiguity. Complex, 50-word run-on sentences increase the probability that an LLM's attention mechanism misattributes causes and effects, leading to hallucinations or exclusion from answer citations.
+
+### How it works
+1. Clean body text into plain tokens.
+2. Segment text into sentences using terminal punctuation (`.`, `!`, `?`).
+3. Calculate syllables per word using phonetic vowel-cluster heuristics.
+4. Apply the formula:
+   $$\text{Score} = 206.835 - (1.015 \times \text{ASL}) - (84.6 \times \text{ASW})$$
+5. Flag pages scoring $<30$ for remediation (recommending sentence splitting and plain language).
+
+### The Analogy
+Think of reading ease like highway traffic flow:
+- Plain English is a smooth, open highway where cars (ideas) move quickly and reach their destination without stopping.
+- Overly dense, jargon-laden text is a congested traffic jam where an ambulance (the reader or AI bot) gets stuck behind 20 syllables of academic bureaucracy.
+
+---
+
+## 10. Near-Duplicate Keyword Cannibalization & Entity Authority Dilution
+
+### What it is
+Keyword cannibalization occurs when a website publishes multiple pages targeting nearly identical topics or queries (e.g., creating 50 near-identical "Best Plumber in [City]" pages with only the city name changed).
+
+### Why it matters
+Search engines and AI answer engines struggle to determine which page is the authoritative canonical entity. Instead of ranking one page highly, search engines split authority across all versions, often causing all of them to rank poorly. Furthermore, AI crawlers that detect near-duplicate boilerplate flag the domain as low-quality under "Helpful Content" guidelines.
+
+### How it works
+AuditIQ uses 64-bit **Simhash Locality-Sensitive Hashing**:
+1. It hashes the token stream of every crawled page into a 64-bit integer.
+2. It calculates the Hamming distance (number of differing bits) between all pairs of pages.
+3. If two pages have a Hamming distance $\le 3$, they share $\ge 85\%$ identical content.
+4. The audit immediately alerts the agency: *"Page A and Page B are near-duplicates. Consolidate them or canonicalize Page B."*
+
+### The Analogy
+Imagine sending two salesmen from the same company to pitch the exact same client at 2:00 PM and 2:15 PM with almost identical slides. Instead of doubling your chances, you confuse the client, look unprofessional, and lose the deal to a competitor who presented one clear, unified pitch.
+
+

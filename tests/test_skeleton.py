@@ -1,7 +1,8 @@
 """Basic skeleton tests verifying package metadata and configuration integrity."""
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 import auditiq
 

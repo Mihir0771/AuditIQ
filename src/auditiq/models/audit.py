@@ -1,8 +1,9 @@
 """Audit run and scoring models."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 from auditiq.models.finding import AuditLayer, Finding
@@ -75,7 +76,7 @@ class AuditRecord(BaseModel):
     id: str
     config: AuditConfig
     status: AuditStatus = AuditStatus.PENDING
-    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     crawl_summary: dict[str, Any] = Field(default_factory=dict)
     score_card: ScoreCard | None = None

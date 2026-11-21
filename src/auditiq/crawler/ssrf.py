@@ -7,14 +7,14 @@ from urllib.parse import urlparse
 # Private, loopback, and cloud metadata network ranges that must never be crawled
 BLOCKED_NETWORKS = [
     ipaddress.ip_network("0.0.0.0/8"),
-    ipaddress.ip_network("127.0.0.0/8"),       # IPv4 loopback
-    ipaddress.ip_network("10.0.0.0/8"),        # RFC 1918 Private
-    ipaddress.ip_network("172.16.0.0/12"),     # RFC 1918 Private
-    ipaddress.ip_network("192.168.0.0/16"),    # RFC 1918 Private
-    ipaddress.ip_network("169.254.0.0/16"),    # Link-local & Cloud Metadata (AWS, GCP, Azure)
-    ipaddress.ip_network("::1/128"),           # IPv6 loopback
-    ipaddress.ip_network("fc00::/7"),          # IPv6 unique local
-    ipaddress.ip_network("fe80::/10"),         # IPv6 link-local
+    ipaddress.ip_network("127.0.0.0/8"),  # IPv4 loopback
+    ipaddress.ip_network("10.0.0.0/8"),  # RFC 1918 Private
+    ipaddress.ip_network("172.16.0.0/12"),  # RFC 1918 Private
+    ipaddress.ip_network("192.168.0.0/16"),  # RFC 1918 Private
+    ipaddress.ip_network("169.254.0.0/16"),  # Link-local & Cloud Metadata (AWS, GCP, Azure)
+    ipaddress.ip_network("::1/128"),  # IPv6 loopback
+    ipaddress.ip_network("fc00::/7"),  # IPv6 unique local
+    ipaddress.ip_network("fe80::/10"),  # IPv6 link-local
 ]
 
 
@@ -26,7 +26,9 @@ def validate_url_safety(target_url: str) -> None:
     """Validates that a URL does not target loopback, private networks, or metadata services."""
     parsed = urlparse(target_url)
     if parsed.scheme.lower() not in ("http", "https"):
-        raise SSRFValidationError(f"Invalid URL scheme: '{parsed.scheme}'. Only http and https allowed.")
+        raise SSRFValidationError(
+            f"Invalid URL scheme: '{parsed.scheme}'. Only http and https allowed."
+        )
 
     hostname = parsed.hostname
     if not hostname:
@@ -46,7 +48,7 @@ def validate_url_safety(target_url: str) -> None:
         try:
             addr_info = socket.getaddrinfo(hostname, None)
             ip_addresses = [ipaddress.ip_address(item[4][0]) for item in addr_info]
-        except socket.gaierror as e:
+        except socket.gaierror:
             # DNS resolution failure; let caller handle during fetch
             return
 

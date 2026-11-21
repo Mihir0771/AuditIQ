@@ -1,8 +1,9 @@
 """Base classes and execution context for pluggable audit checks."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 from auditiq.crawler.graph import LinkGraph
 from auditiq.models.audit import AuditConfig
@@ -13,22 +14,20 @@ from auditiq.models.snapshot import CrawlResult, PageSnapshot
 class SiteContext(BaseModel):
     """Site-wide context containing the entire crawl result and link graph."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     crawl_result: CrawlResult
     link_graph: LinkGraph
     config: AuditConfig
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PageContext(BaseModel):
     """Page-level context containing the specific snapshot and site-wide metadata."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     snapshot: PageSnapshot
     site: SiteContext
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class BaseCheck(ABC):
@@ -56,6 +55,7 @@ class BaseCheck(ABC):
     ) -> Finding:
         """Helper to create a typed, immutable Finding object with consistent metadata."""
         import hashlib
+
         finding_hash = hashlib.sha256(f"{self.id}:{url}".encode()).hexdigest()[:12]
         return Finding(
             id=f"{self.id}-{finding_hash}",

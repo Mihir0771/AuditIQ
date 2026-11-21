@@ -1,9 +1,9 @@
 """XML Sitemap and Sitemap Index parser with recursive discovery and gzip decompression."""
 
+import contextlib
 import gzip
-import io
 import xml.etree.ElementTree as ET
-from urllib.parse import urljoin
+
 import httpx
 
 from auditiq.crawler.normalizer import normalize_url
@@ -27,10 +27,8 @@ class SitemapParser:
         """
         # Decompress if gzipped
         if xml_bytes.startswith(b"\x1f\x8b"):
-            try:
+            with contextlib.suppress(Exception):
                 xml_bytes = gzip.decompress(xml_bytes)
-            except Exception:
-                pass
 
         page_urls: set[str] = set()
         sub_sitemaps: set[str] = set()
@@ -46,8 +44,14 @@ class SitemapParser:
 
         if tag_name == "sitemapindex":
             # Sitemap Index containing references to other sitemaps
-            for sitemap in root.findall(".//sm:sitemap", cls.XML_NAMESPACES) or root.findall(".//sitemap"):
-                loc_node = sitemap.find("sm:loc", cls.XML_NAMESPACES) if "sm" in cls.XML_NAMESPACES else None
+            for sitemap in root.findall(".//sm:sitemap", cls.XML_NAMESPACES) or root.findall(
+                ".//sitemap"
+            ):
+                loc_node = (
+                    sitemap.find("sm:loc", cls.XML_NAMESPACES)
+                    if "sm" in cls.XML_NAMESPACES
+                    else None
+                )
                 if loc_node is None:
                     loc_node = sitemap.find("loc")
                 if loc_node is not None and loc_node.text:
@@ -58,7 +62,11 @@ class SitemapParser:
         elif tag_name == "urlset":
             # Standard URL set
             for url_node in root.findall(".//sm:url", cls.XML_NAMESPACES) or root.findall(".//url"):
-                loc_node = url_node.find("sm:loc", cls.XML_NAMESPACES) if "sm" in cls.XML_NAMESPACES else None
+                loc_node = (
+                    url_node.find("sm:loc", cls.XML_NAMESPACES)
+                    if "sm" in cls.XML_NAMESPACES
+                    else None
+                )
                 if loc_node is None:
                     loc_node = url_node.find("loc")
                 if loc_node is not None and loc_node.text:

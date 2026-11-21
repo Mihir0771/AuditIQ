@@ -1,30 +1,37 @@
 """Directed internal link graph engine and orphan page detector."""
 
-from collections import defaultdict, deque
-from typing import Any
-from pydantic import BaseModel, Field
+from collections import deque
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LinkGraph(BaseModel):
     """Represents the internal hyperlink structure of a crawled website."""
 
-    start_url: str
-    inlinks: dict[str, set[str]] = Field(default_factory=lambda: defaultdict(set))
-    outlinks: dict[str, set[str]] = Field(default_factory=lambda: defaultdict(set))
-    anchor_texts: dict[str, dict[str, str]] = Field(default_factory=lambda: defaultdict(dict))
-    depths: dict[str, int] = Field(default_factory=dict)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    class Config:
-        arbitrary_types_allowed = True
+    start_url: str
+    inlinks: dict[str, set[str]] = Field(default_factory=dict)
+    outlinks: dict[str, set[str]] = Field(default_factory=dict)
+    anchor_texts: dict[str, dict[str, str]] = Field(default_factory=dict)
+    depths: dict[str, int] = Field(default_factory=dict)
 
     def add_edge(self, source_url: str, target_url: str, anchor_text: str = "") -> None:
         """Adds a directed link from source_url to target_url."""
         if source_url == target_url:
             return  # Ignore self-links in topological calculations
 
+        if source_url not in self.outlinks:
+            self.outlinks[source_url] = set()
         self.outlinks[source_url].add(target_url)
+
+        if target_url not in self.inlinks:
+            self.inlinks[target_url] = set()
         self.inlinks[target_url].add(source_url)
+
         if anchor_text:
+            if target_url not in self.anchor_texts:
+                self.anchor_texts[target_url] = {}
             self.anchor_texts[target_url][source_url] = anchor_text.strip()
 
     def compute_depths(self) -> None:

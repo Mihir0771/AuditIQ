@@ -1,7 +1,9 @@
 """Selective headless browser rendering engine powered by Playwright."""
 
+import contextlib
 import logging
 from pathlib import Path
+
 from pydantic import BaseModel
 
 logger = logging.getLogger("auditiq.crawler.renderer")
@@ -54,10 +56,8 @@ class SelectiveRenderer:
                 await page.goto(url, wait_until="load", timeout=int(self.timeout_sec * 1000))
 
                 # Allow a short grace period for hydration
-                try:
+                with contextlib.suppress(Exception):
                     await page.wait_for_load_state("networkidle", timeout=3000)
-                except Exception:
-                    pass
 
                 rendered_html = await page.content()
 

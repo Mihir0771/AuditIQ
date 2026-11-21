@@ -2,6 +2,7 @@
 
 from enum import StrEnum
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -41,7 +42,9 @@ class Finding(BaseModel):
     status: FindingStatus
     url: str
     title: str
-    evidence: list[dict[str, Any]] = Field(default_factory=list, description="Concrete proof (snippets, headers, tags)")
+    evidence: list[dict[str, Any]] = Field(
+        default_factory=list, description="Concrete proof (snippets, headers, tags)"
+    )
     why_it_matters: str
     fix: str
     effort: Effort

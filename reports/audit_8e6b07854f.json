@@ -1,0 +1,422 @@
+{
+  "id": "8e6b07854f",
+  "config": {
+    "target_url": "https://books.toscrape.com",
+    "brand_name": "",
+    "competitors": [],
+    "niche": "",
+    "country": "en-US",
+    "layers": [
+      "technical"
+    ],
+    "max_pages": 3,
+    "max_depth": 3,
+    "render_sample": 5,
+    "concurrency": 5,
+    "respect_robots": true
+  },
+  "status": "completed",
+  "started_at": "2026-11-21T05:00:57.881054Z",
+  "completed_at": null,
+  "crawl_summary": {
+    "total_pages": 1,
+    "duration_sec": 12.69,
+    "sitemap_urls_count": 0
+  },
+  "score_card": {
+    "scoring_version": "2026.1",
+    "composite_score": 51.5,
+    "letter_grade": "F",
+    "layer_scores": {
+      "technical": 51.5,
+      "content": null,
+      "geo_readiness": null,
+      "live_visibility": null
+    },
+    "active_layers": [
+      "technical"
+    ],
+    "layer_weights": {
+      "technical": 1.0
+    },
+    "top_negative_drivers": [
+      "robots.txt Presence & Accessibility affected 1 page(s) (-49.0 pts)",
+      "XML Sitemap Discovery & Validity affected 1 page(s) (-49.0 pts)",
+      "Missing rel='canonical' Link Tag affected 1 page(s) (-49.0 pts)",
+      "Missing or Empty <title> Tag affected 1 page(s) (-100.0 pts)",
+      "Missing Meta Description affected 1 page(s) (-16.0 pts)"
+    ],
+    "top_positive_drivers": [
+      "Accidental Critical Path Blocking in robots.txt passed cleanly.",
+      "Time to First Byte (TTFB) Latency passed cleanly."
+    ],
+    "priority_actions": [
+      {
+        "title": "Missing or Empty <title> Tag",
+        "check_id": "TECH-TITLE-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 5.0,
+        "impact": 5,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add a unique, descriptive <title> tag inside the <head> of every HTML page.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "robots.txt Presence & Accessibility",
+        "check_id": "TECH-ROBOTS-PRESENCE",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Publish a valid /robots.txt file at the root of your domain.",
+        "example_url": "https://books.toscrape.com/robots.txt"
+      },
+      {
+        "title": "XML Sitemap Discovery & Validity",
+        "check_id": "TECH-SITEMAP-PRESENCE",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Publish an XML sitemap at /sitemap.xml and reference it in /robots.txt.",
+        "example_url": "https://books.toscrape.com/sitemap.xml"
+      },
+      {
+        "title": "Missing rel='canonical' Link Tag",
+        "check_id": "TECH-CANONICAL-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add a self-referencing <link rel='canonical' href='https://...'> tag in the <head>.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Mobile Responsive Viewport Configuration",
+        "check_id": "TECH-VIEWPORT",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 4.0,
+        "impact": 4,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add <meta name='viewport' content='width=device-width, initial-scale=1.0'> in the <head>.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing Meta Description",
+        "check_id": "TECH-META-DESC-MISSING",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 3.0,
+        "impact": 3,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Add an enticing, descriptive <meta name='description' content='...'> tag.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing <h1> heading tag",
+        "check_id": "TECH-H1-MISSING-MULTI",
+        "layer": "technical",
+        "quadrant": "Quick wins",
+        "priority_score": 3.0,
+        "impact": 3,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Ensure each page contains exactly one <h1> element accurately describing the page subject.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Core Schema.org Type Coverage",
+        "check_id": "TECH-SCHEMA-TYPES",
+        "layer": "technical",
+        "quadrant": "Major projects",
+        "priority_score": 1.6,
+        "impact": 4,
+        "effort": "M",
+        "affected_pages_count": 1,
+        "fix_summary": "Deploy relevant Schema.org JSON-LD templates based on page intent.",
+        "example_url": "https://books.toscrape.com/"
+      },
+      {
+        "title": "Missing recommended security headers (HSTS / nosniff)",
+        "check_id": "TECH-SECURITY-HEADERS",
+        "layer": "technical",
+        "quadrant": "Fill-ins",
+        "priority_score": 1.0,
+        "impact": 1,
+        "effort": "S",
+        "affected_pages_count": 1,
+        "fix_summary": "Configure web server or CDN to send Strict-Transport-Security and X-Content-Type-Options headers.",
+        "example_url": "https://books.toscrape.com/"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "TECH-ROBOTS-PRESENCE-70bf6b396ce0",
+      "check_id": "TECH-ROBOTS-PRESENCE",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/robots.txt",
+      "title": "robots.txt Presence & Accessibility",
+      "evidence": [
+        {
+          "error": "robots.txt was not found or returned non-200 status code"
+        }
+      ],
+      "why_it_matters": "robots.txt is the universal entry point for all web crawlers. Without it, crawlers may waste crawl budget on non-canonical URLs, internal search parameters, or private endpoints.",
+      "fix": "Publish a valid /robots.txt file at the root of your domain.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro"
+      ]
+    },
+    {
+      "id": "TECH-ROBOTS-BLOCKING-9d976e0f3dc5",
+      "check_id": "TECH-ROBOTS-BLOCKING",
+      "layer": "technical",
+      "severity": "critical",
+      "status": "pass",
+      "url": "https://books.toscrape.com/robots.txt",
+      "title": "Accidental Critical Path Blocking in robots.txt",
+      "evidence": [
+        {
+          "message": "No catastrophic global Disallow: / rule found."
+        }
+      ],
+      "why_it_matters": "Accidental 'Disallow: /' or disallowing core CSS/JS/images prevents search engines and AI crawlers from indexing content or rendering pages properly.",
+      "fix": "Audit Disallow rules in robots.txt to ensure the homepage ('/') and primary content paths remain accessible.",
+      "effort": "S",
+      "impact": 5,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt"
+      ]
+    },
+    {
+      "id": "TECH-SITEMAP-PRESENCE-46f9e36a8f41",
+      "check_id": "TECH-SITEMAP-PRESENCE",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/sitemap.xml",
+      "title": "XML Sitemap Discovery & Validity",
+      "evidence": [
+        {
+          "error": "No valid XML sitemaps discovered or sitemap was empty"
+        }
+      ],
+      "why_it_matters": "XML sitemaps provide a roadmap of all canonical, high-value pages, ensuring search engines discover new and updated content rapidly.",
+      "fix": "Publish an XML sitemap at /sitemap.xml and reference it in /robots.txt.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview"
+      ]
+    },
+    {
+      "id": "TECH-WWW-CONSISTENCY-2675fcf48965",
+      "check_id": "TECH-WWW-CONSISTENCY",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "www vs. non-www Redirection Consistency",
+      "evidence": [
+        {
+          "canonical_host": "books.toscrape.com"
+        }
+      ],
+      "why_it_matters": "Allowing both www and non-www versions of a website to return 200 OK splits link authority and creates duplicate content across domains.",
+      "fix": "Configure web server or CDN (Cloudflare/Vercel) to redirect the non-canonical host with a 301 status.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "TECH-CANONICAL-MISSING-1095aacdba3b",
+      "check_id": "TECH-CANONICAL-MISSING",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing rel='canonical' Link Tag",
+      "evidence": [
+        {
+          "error": "No rel='canonical' tag found in page HTML"
+        }
+      ],
+      "why_it_matters": "Without an explicit canonical tag, search engines must guess which version of a page to index, leading to duplicate content dilution across trailing slashes, HTTP/HTTPS, and query params.",
+      "fix": "Add a self-referencing <link rel='canonical' href='https://...'> tag in the <head>.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "TECH-TITLE-MISSING-efe286e09af9",
+      "check_id": "TECH-TITLE-MISSING",
+      "layer": "technical",
+      "severity": "critical",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing or Empty <title> Tag",
+      "evidence": [
+        {
+          "error": "Title tag is missing or whitespace only"
+        }
+      ],
+      "why_it_matters": "The <title> tag is one of the most critical on-page ranking signals and provides the clickable headline in search engine results and AI answer cards.",
+      "fix": "Add a unique, descriptive <title> tag inside the <head> of every HTML page.",
+      "effort": "S",
+      "impact": 5,
+      "references": [
+        "https://developers.google.com/search/docs/appearance/title-link"
+      ]
+    },
+    {
+      "id": "TECH-META-DESC-MISSING-a34552e0fdf7",
+      "check_id": "TECH-META-DESC-MISSING",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing Meta Description",
+      "evidence": [
+        {
+          "error": "No meta description tag found"
+        }
+      ],
+      "why_it_matters": "Meta descriptions provide the summary snippet in search results and help AI crawlers understand page intent before full parsing.",
+      "fix": "Add an enticing, descriptive <meta name='description' content='...'> tag.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/appearance/snippet"
+      ]
+    },
+    {
+      "id": "TECH-H1-MISSING-MULTI-61a930c8d269",
+      "check_id": "TECH-H1-MISSING-MULTI",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing <h1> heading tag",
+      "evidence": [
+        {
+          "h1_count": 0,
+          "error": "No <h1> heading tag found in page HTML"
+        }
+      ],
+      "why_it_matters": "Every indexable page should have exactly one descriptive <h1> tag serving as the main topic header for users, search crawlers, and screen readers.",
+      "fix": "Ensure each page contains exactly one <h1> element accurately describing the page subject.",
+      "effort": "S",
+      "impact": 3,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/heading-tags"
+      ]
+    },
+    {
+      "id": "TECH-SCHEMA-TYPES-2474b1579140",
+      "check_id": "TECH-SCHEMA-TYPES",
+      "layer": "technical",
+      "severity": "medium",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Core Schema.org Type Coverage",
+      "evidence": [
+        {
+          "detected_types": []
+        }
+      ],
+      "why_it_matters": "No Schema.org entity types were detected on this page.",
+      "fix": "Deploy relevant Schema.org JSON-LD templates based on page intent.",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://schema.org/docs/schemas.html"
+      ]
+    },
+    {
+      "id": "TECH-TTFB-efb0484b63c3",
+      "check_id": "TECH-TTFB",
+      "layer": "technical",
+      "severity": "high",
+      "status": "pass",
+      "url": "https://books.toscrape.com/",
+      "title": "Time to First Byte (TTFB) Latency",
+      "evidence": [
+        {
+          "ttfb_ms": 618.32
+        }
+      ],
+      "why_it_matters": "High server response latency slows down crawling, burns crawl budget, degrades Core Web Vitals, and causes AI bots with short timeout thresholds (e.g. 800ms) to abort requests.",
+      "fix": "Optimize database queries, enable server-side caching, and utilize edge CDNs (Cloudflare/Fastly).",
+      "effort": "M",
+      "impact": 4,
+      "references": [
+        "https://web.dev/articles/ttfb"
+      ]
+    },
+    {
+      "id": "TECH-VIEWPORT-acd2929a147c",
+      "check_id": "TECH-VIEWPORT",
+      "layer": "technical",
+      "severity": "high",
+      "status": "fail",
+      "url": "https://books.toscrape.com/",
+      "title": "Mobile Responsive Viewport Configuration",
+      "evidence": [
+        {
+          "error": "No valid viewport meta tag found"
+        }
+      ],
+      "why_it_matters": "Mobile-first indexing requires a responsive viewport tag so pages render correctly across smartphones, tablets, and mobile crawlers.",
+      "fix": "Add <meta name='viewport' content='width=device-width, initial-scale=1.0'> in the <head>.",
+      "effort": "S",
+      "impact": 4,
+      "references": [
+        "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing"
+      ]
+    },
+    {
+      "id": "TECH-SECURITY-HEADERS-4cfee74ed723",
+      "check_id": "TECH-SECURITY-HEADERS",
+      "layer": "technical",
+      "severity": "info",
+      "status": "warning",
+      "url": "https://books.toscrape.com/",
+      "title": "Missing recommended security headers (HSTS / nosniff)",
+      "evidence": [
+        {
+          "missing_headers": [
+            "X-Content-Type-Options: nosniff"
+          ]
+        }
+      ],
+      "why_it_matters": "Security headers (HSTS, X-Content-Type-Options) protect visitors from clickjacking, MIME sniffing, and man-in-the-middle downgrade attacks.",
+      "fix": "Configure web server or CDN to send Strict-Transport-Security and X-Content-Type-Options headers.",
+      "effort": "S",
+      "impact": 1,
+      "references": [
+        "https://web.dev/articles/security-headers"
+      ]
+    }
+  ],
+  "error": null
+}

@@ -1,7 +1,9 @@
 """RFC 9309 compliant robots.txt parser and AI bot rule evaluator."""
 
+import contextlib
 import fnmatch
 from urllib.parse import urlparse
+
 from pydantic import BaseModel, Field
 
 
@@ -77,14 +79,11 @@ class RobotsTxtParser:
 
             elif field == "crawl-delay":
                 if current_block is not None:
-                    try:
+                    with contextlib.suppress(ValueError):
                         current_block.crawl_delay = float(value)
-                    except ValueError:
-                        pass
 
-            elif field == "sitemap":
-                if value and value not in self.info.sitemaps:
-                    self.info.sitemaps.append(value)
+            elif field == "sitemap" and value and value not in self.info.sitemaps:
+                self.info.sitemaps.append(value)
 
     def is_allowed(self, user_agent: str, url_or_path: str) -> bool:
         """Determines if a specific user-agent is permitted to crawl the given path."""
@@ -123,10 +122,14 @@ class RobotsTxtParser:
                 if pattern_len > best_match_length:
                     best_match_rule = rule
                     best_match_length = pattern_len
-                elif pattern_len == best_match_length:
+                elif (
+                    pattern_len == best_match_length
+                    and rule.allow
+                    and best_match_rule is not None
+                    and not best_match_rule.allow
+                ):
                     # Allow takes precedence over Disallow on equal length
-                    if rule.allow and not best_match_rule.allow:
-                        best_match_rule = rule
+                    best_match_rule = rule
 
         if best_match_rule is not None:
             return best_match_rule.allow
@@ -144,7 +147,9 @@ class RobotsTxtParser:
                 return block.crawl_delay
         return None
 
-    def evaluate_ai_bot_matrix(self, known_bots: list[dict[str, str]], test_paths: list[str]) -> dict[str, dict[str, bool]]:
+    def evaluate_ai_bot_matrix(
+        self, known_bots: list[dict[str, str]], test_paths: list[str]
+    ) -> dict[str, dict[str, bool]]:
         """Evaluates permission matrix for a list of known AI bot user-agents across key paths.
 
         Returns:
