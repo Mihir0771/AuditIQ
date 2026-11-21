@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from typing import Any
 
 from auditiq.checks.base import BaseCheck, PageContext, SiteContext
 from auditiq.models.audit import AuditConfig
@@ -38,6 +39,7 @@ class CheckRegistry:
         crawl_result: CrawlResult,
         config: AuditConfig,
         active_layers: list[AuditLayer] | None = None,
+        visibility_summary: Any = None,
     ) -> list[Finding]:
         """Executes site-wide and page-level checks across the crawled result."""
         layers = active_layers or config.layers
@@ -60,6 +62,7 @@ class CheckRegistry:
             crawl_result=crawl_result,
             link_graph=graph,
             config=config,
+            visibility_summary=visibility_summary,
         )
 
         all_findings: list[Finding] = []

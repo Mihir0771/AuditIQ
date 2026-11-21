@@ -60,6 +60,8 @@ class CrawlResult(BaseModel):
     sitemap_urls: set[str] = Field(default_factory=set)
     robots_txt_content: str | None = None
     robots_txt_status: int | None = None
+    llms_txt_content: str | None = None
+    llms_txt_status: int | None = None
     crawl_duration_sec: float = 0.0
     total_urls_discovered: int = 0
     total_pages_crawled: int = 0

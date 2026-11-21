@@ -14,12 +14,16 @@ from rich.table import Table
 
 import auditiq
 from auditiq.checks.content import register_content_checks
+from auditiq.checks.geo import register_geo_checks
+from auditiq.checks.live import register_live_checks
 from auditiq.checks.registry import default_registry
 from auditiq.checks.tech import register_tech_checks
 from auditiq.crawler.engine import HttpCrawler
 from auditiq.models.audit import AuditConfig, AuditRecord, AuditStatus
 from auditiq.models.finding import AuditLayer
 from auditiq.scoring.engine import calculate_score_card
+from auditiq.visibility.generator import PromptGenerator
+from auditiq.visibility.runner import VisibilityRunner
 
 app = typer.Typer(
     name="auditiq",
@@ -99,12 +103,17 @@ def audit(
     ] = "tech",
     max_pages: Annotated[int, typer.Option("--max-pages", "-m", help="Max pages to crawl")] = 30,
     depth: Annotated[int, typer.Option("--depth", "-d", help="Max crawl click depth")] = 3,
+    mock_ai: Annotated[
+        bool, typer.Option("--mock-ai", help="Use deterministic mock AI engines for testing")
+    ] = False,
     out: Annotated[Path | None, typer.Option("--out", "-o", help="Output directory")] = None,
 ) -> None:
     """Executes a multi-layer audit against the target website and computes an evidence-backed score."""
     # Ensure checks are registered
     register_tech_checks()
     register_content_checks()
+    register_geo_checks()
+    register_live_checks()
 
     # Parse layers
     layer_map = {
@@ -143,9 +152,34 @@ def audit(
     with console.status("[bold green]Crawling website...[/bold green]", spinner="dots"):
         crawl_result = asyncio.run(crawler.crawl())
 
-    # 2. Run Checks
+    # 2. Live AI Visibility (if layer active)
+    visibility_summary = None
+    if AuditLayer.LIVE_VISIBILITY in active_layers:
+        runner = VisibilityRunner(use_mock_fallback=mock_ai)
+        if runner.has_available_engines():
+            with console.status(
+                f"[bold green]Querying AI Answer Engines ({', '.join(e.name for e in runner.engines)})...[/bold green]",
+                spinner="dots",
+            ):
+                queries = PromptGenerator.generate_queries(
+                    crawl_result, brand_name=brand or None, max_queries=15
+                )
+                visibility_summary = asyncio.run(runner.run(queries))
+        else:
+            console.print(
+                "[bold yellow]![/bold yellow] Live AI Visibility: No API keys configured (run with --mock-ai for offline simulation)."
+            )
+
+    # 3. Run Checks
     with console.status("[bold green]Evaluating audit checks...[/bold green]", spinner="dots"):
-        findings = asyncio.run(default_registry.run_checks(crawl_result, config, active_layers))
+        findings = asyncio.run(
+            default_registry.run_checks(
+                crawl_result,
+                config,
+                active_layers,
+                visibility_summary=visibility_summary,
+            )
+        )
 
     # 3. Calculate Scores & Prioritization
     score_card = calculate_score_card(
@@ -172,6 +206,31 @@ def audit(
             f"{score_card.layer_weights.get(layer_item, 0) * 100:.0f}%",
         )
     console.print(score_table)
+
+    # Display Live AI Visibility Benchmark if available
+    if visibility_summary:
+        vis_table = Table(
+            title=f"Live AI Answer Engine Visibility Benchmark ({', '.join(visibility_summary.active_engines)})",
+            box=box.ROUNDED,
+        )
+        vis_table.add_column("Visibility Metric", style="bold cyan")
+        vis_table.add_column("Observed Rate (95% CI)", justify="right")
+        vis_table.add_column("Evaluations", justify="right")
+
+        vis_table.add_row(
+            "Brand Mention Rate",
+            visibility_summary.mention_rate.display,
+            f"n={visibility_summary.mention_rate.sample_size}",
+        )
+        vis_table.add_row(
+            "Domain Citation Rate",
+            visibility_summary.citation_rate.display,
+            f"n={visibility_summary.citation_rate.sample_size}",
+        )
+        vis_table.add_row(
+            "Competitive Share of Voice", f"{visibility_summary.share_of_voice}%", "-"
+        )
+        console.print(vis_table)
 
     # Display Top Action Items
     if score_card.priority_actions:
@@ -235,7 +294,13 @@ def doctor() -> None:
     console.print(f"[bold green]✓[/bold green] Python Version: {py_ver}")
 
     # 2. Package version
-    console.print(f"[bold green]✓[/bold green] AuditIQ Package: v{auditiq.__version__}")
+    register_tech_checks()
+    register_content_checks()
+    register_geo_checks()
+    register_live_checks()
+    console.print(
+        f"[bold green]✓[/bold green] AuditIQ Package: v{auditiq.__version__} ({len(default_registry.get_checks())} audit checks registered)"
+    )
 
     # 3. Config check
     cfg_dir = Path("config")

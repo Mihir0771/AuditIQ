@@ -49,6 +49,8 @@ class HttpCrawler:
         self.render_sample = render_sample
 
         self.robots_parser: RobotsTxtParser | None = None
+        self.llms_txt_content: str | None = None
+        self.llms_txt_status: int | None = None
         self.link_graph = LinkGraph(start_url=self.start_url)
         self.snapshots: dict[str, PageSnapshot] = {}
         self.discovered_sitemaps: set[str] = set()
@@ -90,10 +92,13 @@ class HttpCrawler:
             # 1. Fetch & parse robots.txt
             await self._fetch_robots_txt(client)
 
-            # 2. Fetch & parse Sitemaps
+            # 2. Probe /llms.txt
+            await self._fetch_llms_txt(client)
+
+            # 3. Fetch & parse Sitemaps
             await self._discover_sitemaps(client)
 
-            # 3. Seed queue with start_url and sitemap URLs (depth 1 for sitemaps)
+            # 4. Seed queue with start_url and sitemap URLs (depth 1 for sitemaps)
             self._queue.append((self.start_url, 0))
             for s_url in list(self.sitemap_urls)[: self.max_pages]:
                 if s_url not in [u for u, _ in self._queue]:
@@ -169,6 +174,8 @@ class HttpCrawler:
             robots_txt_status=200
             if self.robots_parser and self.robots_parser.info.raw_content
             else None,
+            llms_txt_content=self.llms_txt_content,
+            llms_txt_status=self.llms_txt_status,
             crawl_duration_sec=duration,
             total_urls_discovered=len(self._visited) + len(self._queue),
             total_pages_crawled=len(self.snapshots),
@@ -190,6 +197,18 @@ class HttpCrawler:
         except Exception as e:
             logger.debug("Failed to fetch robots.txt for %s: %s", self.base_domain, e)
             self.robots_parser = RobotsTxtParser("")
+
+    async def _fetch_llms_txt(self, client: httpx.AsyncClient) -> None:
+        """Probes for /llms.txt standard file."""
+        llms_url = f"{self.base_scheme}://{self.base_domain}/llms.txt"
+        try:
+            resp = await client.get(llms_url, timeout=10.0, follow_redirects=True)
+            self.llms_txt_status = resp.status_code
+            if resp.status_code == 200 and resp.text.strip():
+                self.llms_txt_content = resp.text
+        except Exception as e:
+            logger.debug("Failed to fetch llms.txt for %s: %s", self.base_domain, e)
+            self.llms_txt_status = None
 
     async def _discover_sitemaps(self, client: httpx.AsyncClient) -> None:
         """Discovers sitemaps from robots.txt or standard paths."""

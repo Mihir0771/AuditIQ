@@ -19,6 +19,7 @@ class SiteContext(BaseModel):
     crawl_result: CrawlResult
     link_graph: LinkGraph
     config: AuditConfig
+    visibility_summary: Any = None
 
 
 class PageContext(BaseModel):

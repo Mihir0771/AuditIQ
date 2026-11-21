@@ -226,4 +226,71 @@ AuditIQ uses 64-bit **Simhash Locality-Sensitive Hashing**:
 ### The Analogy
 Imagine sending two salesmen from the same company to pitch the exact same client at 2:00 PM and 2:15 PM with almost identical slides. Instead of doubling your chances, you confuse the client, look unprofessional, and lose the deal to a competitor who presented one clear, unified pitch.
 
+---
+
+## 11. Wilson Score Confidence Intervals for Stochastic AI Measurement
+
+### What it is
+The **Wilson Score Interval** is an asymmetric statistical method for calculating confidence intervals for binomial proportions (successes $k$ out of total trials $n$). Unlike naive "Wald" intervals ($p \pm z \sqrt{p(1-p)/n}$), the Wilson interval remains mathematically valid and well-bounded even with small sample sizes ($n < 30$) and extreme success rates ($p = 0\%$ or $p = 100\%$).
+
+### Why it matters
+Large language models are non-deterministic: their answers change between runs based on temperature, query phrasing, and internal stochastic sampling. If an SEO tool runs a single query and says *"Your AI visibility is 100%!"*, that number is mathematically fraudulent. To produce agency-grade audit reports, we must run multiple trials ($n \ge 15$) and report the empirical proportion alongside a 95% confidence interval (e.g., *"53.3% [95% CI: 30.1% - 75.2%, n=15]"*).
+
+### How it works
+For $k$ successes out of $n$ trials at confidence level $z = 1.95996$ (95% confidence):
+$$\hat{p} = \frac{k}{n}$$
+$$\text{Center} = \frac{\hat{p} + \frac{z^2}{2n}}{1 + \frac{z^2}{n}}$$
+$$\text{Margin} = \frac{z}{1 + \frac{z^2}{n}} \sqrt{\frac{\hat{p}(1 - \hat{p})}{n} + \frac{z^2}{4n^2}}$$
+$$\text{CI} = [\max(0, \text{Center} - \text{Margin}), \min(1, \text{Center} + \text{Margin})]$$
+
+### The Analogy
+If you flip a coin twice and get Heads both times, a naive tool claims the coin lands Heads 100% of the time. A seasoned statistician using a Wilson interval says: *"The observed rate is 100%, but with $n=2$, the true probability is somewhere between 34% and 100%."* AuditIQ gives agencies honest statistical rigor.
+
+---
+
+## 12. The /llms.txt Standard for Generative AI Discovery
+
+### What it is
+`/llms.txt` is an open standard (proposed by Answer.ai and Jeremy Howard, and adopted by Anthropic, Perplexity, Cursor, and others) hosted at a website's root URL (e.g., `https://example.com/llms.txt`). It provides a concise, curated Markdown map of a website's most important documentation and content specifically formatted for LLM context windows.
+
+### Why it matters
+AI agents and answer engines have finite token context windows and strict processing latency limits. When an AI agent needs to understand a company's product, reading through megabytes of HTML layout, CSS, cookie banners, and navigation menus is wasteful and error-prone. A clean `/llms.txt` file lets AI agents ingest accurate, canonical product documentation in seconds with zero token waste.
+
+### How it works
+1. The site publishes a plaintext file at `/llms.txt`.
+2. The file starts with an H1 project name and a single blockquote summary.
+3. It organizes curated links under descriptive H2 headings (e.g., `## Core Documentation`, `## API Reference`).
+4. AuditIQ verifies whether `/llms.txt` is present, returns HTTP 200, is formatted in valid Markdown rather than an HTML soft-404, and links to canonical resources.
+
+### The Analogy
+Imagine walking into a massive shopping mall:
+- Crawling a standard website is like walking down every aisle in all 100 stores to find a phone charger.
+- Having an `/llms.txt` file is like having an electronic directory at the entrance that instantly hands you an exact map directly to the charger store.
+
+---
+
+## 13. RAG Passage Chunking & Heading Hierarchy
+
+### What it is
+**Retrieval-Augmented Generation (RAG)** is the technique used by AI answer engines (like Perplexity and ChatGPT Search) to search the web, retrieve relevant text snippets ("passages"), insert them into the LLM's context window, and synthesize an answer.
+**Passage chunking** refers to how web page content is divided into self-contained topical blocks, typically between 100 and 300 words, delimited by descriptive subheadings (`<h2>`, `<h3>`).
+
+### Why it matters
+When vector search algorithms scan a web page to answer a specific user question:
+- If a section is a monolithic wall of 800 words without subheadings, the embedding vector gets diluted across multiple topics, resulting in poor retrieval scores.
+- If content is chopped into tiny fragments (<20 words), the retrieved passage lacks sufficient context for the model to construct a factual citation.
+Pages structured with 100–250 word sections headed by explicit question-based subheadings win significantly more passage citations in generative engines.
+
+### How it works
+1. AuditIQ parses the HTML body, decomposing peripheral elements (scripts, styles, navs, footers).
+2. It extracts all structural headings (`h1` through `h4`).
+3. It computes the average word count per heading section.
+4. If a page has $>400$ words with 0 subheadings, or averages $>450$ words per heading, it flags a `Passage Chunking` warning and suggests breaking the text into cohesive subsections with topic sentences.
+
+### The Analogy
+Think of a textbook:
+- A textbook with clear chapter titles, bold subheadings, and 3-paragraph sections lets students quickly find the exact formula for a test.
+- A textbook printed as one unbroken 500-page paragraph would make it impossible for anyone—human or AI—to locate a specific piece of information.
+
+
 
