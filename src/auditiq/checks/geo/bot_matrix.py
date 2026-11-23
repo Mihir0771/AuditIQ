@@ -16,6 +16,7 @@ class AiBotMatrixCheck(BaseCheck):
     severity = Severity.HIGH
     effort = Effort.SMALL
     impact = 5
+    scope = "site"
     why_it_matters = (
         "AI vendors operate distinct web crawlers. Blocking training bots (GPTBot, ClaudeBot) protects "
         "copyright, but blocking search crawlers (OAI-SearchBot, PerplexityBot) destroys real-time citations "
@@ -134,6 +135,7 @@ class BotFirewallCheck(BaseCheck):
     severity = Severity.HIGH
     effort = Effort.MEDIUM
     impact = 5
+    scope = "site"
     why_it_matters = (
         "Aggressive Cloudflare, CloudFront, or Akamai WAF rules often return JS challenge (CAPTCHA) pages "
         "or 403 Forbidden to non-browser requests, making content completely invisible to automated AI engines."

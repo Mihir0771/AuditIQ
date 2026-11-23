@@ -1,8 +1,14 @@
 """Technical SEO Crawlability & Indexability checks (TECH-*)."""
 
+import asyncio
+from typing import Any
 from urllib.parse import urlparse
 
+import httpx
+from selectolax.lexbor import LexborHTMLParser
+
 from auditiq.checks.base import BaseCheck, PageContext, SiteContext
+from auditiq.crawler.normalizer import is_internal_url
 from auditiq.models.finding import AuditLayer, Effort, Finding, FindingStatus, Severity
 
 
@@ -13,6 +19,7 @@ class HostReachabilityCheck(BaseCheck):
     severity = Severity.CRITICAL
     effort = Effort.LARGE
     impact = 5
+    scope = "site"
     why_it_matters = (
         "A website must be reachable and return valid HTTP 200 OK responses to be crawled, indexed, "
         "and cited by search engines and generative AI answer engines."
@@ -60,6 +67,7 @@ class RobotsPresenceCheck(BaseCheck):
     severity = Severity.HIGH
     effort = Effort.SMALL
     impact = 4
+    scope = "site"
     why_it_matters = (
         "robots.txt is the universal entry point for all web crawlers. Without it, crawlers may "
         "waste crawl budget on non-canonical URLs, internal search parameters, or private endpoints."
@@ -110,6 +118,7 @@ class RobotsBlockingCheck(BaseCheck):
     severity = Severity.CRITICAL
     effort = Effort.SMALL
     impact = 5
+    scope = "site"
     why_it_matters = (
         "Accidental 'Disallow: /' or disallowing core CSS/JS/images prevents search engines and AI "
         "crawlers from indexing content or rendering pages properly."
@@ -165,6 +174,7 @@ class SitemapPresenceCheck(BaseCheck):
     severity = Severity.HIGH
     effort = Effort.SMALL
     impact = 4
+    scope = "site"
     why_it_matters = (
         "XML sitemaps provide a roadmap of all canonical, high-value pages, ensuring search engines "
         "discover new and updated content rapidly."
@@ -324,6 +334,7 @@ class OrphanPagesCheck(BaseCheck):
     severity = Severity.MEDIUM
     effort = Effort.MEDIUM
     impact = 3
+    scope = "site"
     why_it_matters = (
         "Pages with zero internal links receive no internal PageRank and are rarely discovered by "
         "crawlers unless specified in sitemaps."
@@ -564,6 +575,7 @@ class WwwConsistencyCheck(BaseCheck):
     severity = Severity.MEDIUM
     effort = Effort.SMALL
     impact = 3
+    scope = "site"
     why_it_matters = (
         "Allowing both www and non-www versions of a website to return 200 OK splits link authority "
         "and creates duplicate content across domains."
@@ -584,3 +596,91 @@ class WwwConsistencyCheck(BaseCheck):
             )
         )
         return findings
+
+
+class BrokenOutboundLinksCheck(BaseCheck):
+    id = "TECH-BROKEN-OUTBOUND"
+    layer = AuditLayer.TECHNICAL
+    title = "Broken Outbound External Links (HTTP 4xx/5xx or Dead Hosts)"
+    severity = Severity.HIGH
+    effort = Effort.MEDIUM
+    impact = 4
+    why_it_matters = (
+        "Linking to dead websites, 404 pages, or unresolvable domains signals decayed content to search engines "
+        "and damages the user and AI citation experience."
+    )
+    fix_guidance = "Audit external outbound links and update or remove destinations that return 4xx/5xx or connection errors."
+    references = ["https://developers.google.com/search/docs/crawling-indexing/links-crawlable"]
+
+    async def run_page(self, context: PageContext) -> list[Finding]:
+        snap = context.snapshot
+        if snap.status_code != 200 or not snap.raw_html or "text/html" not in snap.content_type:
+            return []
+
+        parser = LexborHTMLParser(snap.raw_html)
+        base_domain = context.site.crawl_result.base_domain
+
+        external_links: set[str] = set()
+        for node in parser.css("a[href]"):
+            href = (node.attributes.get("href") or "").strip()
+            if not href.startswith(("http://", "https://")):
+                continue
+            if not is_internal_url(href, base_domain):
+                external_links.add(href)
+            if len(external_links) >= 12:
+                break
+
+        if not external_links:
+            return []
+
+        broken_links: list[dict[str, Any]] = []
+
+        async def _check_target(client: httpx.AsyncClient, link_url: str) -> None:
+            try:
+                r = await client.head(link_url)
+                if r.status_code in (404, 410, 500, 502, 503, 504):
+                    broken_links.append({"url": link_url, "status": r.status_code})
+            except Exception as e:
+                # DNS failure, connection refused, or timeout
+                err_str = str(e) or type(e).__name__
+                broken_links.append({"url": link_url, "error": err_str[:80]})
+
+        try:
+            async with httpx.AsyncClient(
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                follow_redirects=True,
+                timeout=3.0,
+                verify=False,
+            ) as client:
+                await asyncio.gather(
+                    *[_check_target(client, link) for link in external_links],
+                    return_exceptions=True,
+                )
+        except Exception:
+            pass
+
+        if broken_links:
+            sev = Severity.HIGH if len(broken_links) >= 3 else Severity.MEDIUM
+            return [
+                self.create_finding(
+                    url=snap.url,
+                    status=FindingStatus.FAIL if len(broken_links) >= 3 else FindingStatus.WARNING,
+                    severity_override=sev,
+                    evidence=[
+                        {
+                            "broken_outbound_count": len(broken_links),
+                            "tested_count": len(external_links),
+                            "broken_targets": broken_links[:5],
+                        }
+                    ],
+                    title_override=f"Broken Outbound Links Detected ({len(broken_links)} unreachable external links)",
+                    why_override="Outbound links returning 4xx/5xx or DNS connection errors harm search quality ratings.",
+                )
+            ]
+        return [
+            self.create_finding(
+                url=snap.url,
+                status=FindingStatus.PASS,
+                evidence=[{"tested_external_links": len(external_links), "status": "All tested links reachable"}],
+            )
+        ]

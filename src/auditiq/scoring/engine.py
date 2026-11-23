@@ -124,8 +124,13 @@ def calculate_score_card(
             else:
                 fail_count = len(failures)
                 warn_count = len(warnings)
-                fail_ratio = min(1.0, fail_count / total_pages)
-                warn_ratio = min(1.0, warn_count / total_pages)
+                is_site_scope = getattr(check, "scope", "page") == "site"
+                if is_site_scope:
+                    fail_ratio = 1.0 if fail_count > 0 else 0.0
+                    warn_ratio = 1.0 if warn_count > 0 else 0.0
+                else:
+                    fail_ratio = min(1.0, fail_count / total_pages)
+                    warn_ratio = min(1.0, warn_count / total_pages)
 
                 deduction = (base_deduction * fail_ratio) + (base_deduction * 0.5 * warn_ratio)
                 total_deduction += deduction
@@ -158,17 +163,23 @@ def calculate_score_card(
 
     composite_score = round(max(0.0, min(100.0, composite_score)), 1)
 
-    # Pillar integrity: A site cannot receive a passing Grade (A/B/C >= 70.0) if any CRITICAL
-    # severity failure exists or if any individual layer score is failing (< 50.0).
+    # Pillar integrity: Grade cannot exceed the strength of the weakest foundation.
     has_critical_failure = any(
         f.status == FindingStatus.FAIL and f.severity == Severity.CRITICAL
         for f in findings
     )
-    has_failing_layer = any(
-        s is not None and s < 50.0 for s in layer_scores.values()
-    )
-    if has_critical_failure or has_failing_layer:
+    measured_scores = [s for s in layer_scores.values() if s is not None]
+    min_layer_score = min(measured_scores) if measured_scores else 100.0
+
+    if min_layer_score < 50.0:
+        # A failing pillar drops the entire site to failing (Grade F)
+        composite_score = min(composite_score, 49.0)
+    elif has_critical_failure or min_layer_score < 70.0:
+        # Critical blocker or sub-70 pillar caps overall grade at Grade D
         composite_score = min(composite_score, 69.0)
+    elif min_layer_score < 80.0:
+        # A sub-80 pillar prevents Grade A
+        composite_score = min(composite_score, 79.0)
 
     # Determine letter grade
     if composite_score >= 90.0:

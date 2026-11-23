@@ -43,7 +43,16 @@ class EntitySameAsCheck(BaseCheck):
             parser = LexborHTMLParser(html)
             scripts = parser.css("script[type='application/ld+json']")
             if not scripts:
-                return []
+                return [
+                    self.create_finding(
+                        url=snap.url,
+                        status=FindingStatus.WARNING,
+                        severity_override=Severity.HIGH,
+                        evidence=[{"error": "No JSON-LD structured data detected on primary landing page"}],
+                        title_override="Missing Organization JSON-LD Schema with sameAs Knowledge Graph URIs",
+                        why_override="AI answer engines need JSON-LD sameAs entity links (Wikidata, Wikipedia, LinkedIn) to ground brand recognition.",
+                    )
+                ]
 
             org_schemas = []
             same_as_links: list[str] = []
@@ -74,7 +83,16 @@ class EntitySameAsCheck(BaseCheck):
                     continue
 
             if not org_schemas:
-                return []
+                return [
+                    self.create_finding(
+                        url=snap.url,
+                        status=FindingStatus.WARNING,
+                        severity_override=Severity.HIGH,
+                        evidence=[{"error": "JSON-LD present but missing Organization or Brand entity schema"}],
+                        title_override="No Organization or Brand entity schema detected for Knowledge Graph disambiguation",
+                        why_override="Without an explicit Organization entity schema, AI models cannot disambiguate your brand identity.",
+                    )
+                ]
 
             authority_domains = ("wikidata.org", "wikipedia.org", "crunchbase.com", "linkedin.com")
             has_authority_link = any(

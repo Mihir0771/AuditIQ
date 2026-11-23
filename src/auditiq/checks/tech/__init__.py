@@ -2,6 +2,7 @@
 
 from auditiq.checks.registry import CheckRegistry, default_registry
 from auditiq.checks.tech.crawlability import (
+    BrokenOutboundLinksCheck,
     CanonicalConflictCheck,
     CanonicalMissingCheck,
     CrawlDepthCheck,
@@ -18,11 +19,13 @@ from auditiq.checks.tech.crawlability import (
     WwwConsistencyCheck,
 )
 from auditiq.checks.tech.onpage import (
+    DomHygieneCheck,
     H1MissingMultiCheck,
     HeadingSkipsCheck,
     ImageAltMissingCheck,
     MetaDescLengthCheck,
     MetaDescMissingCheck,
+    OpenGraphCheck,
     TitleLengthCheck,
     TitleMissingCheck,
     UrlHygieneCheck,
@@ -61,6 +64,9 @@ def register_tech_checks(registry: CheckRegistry = default_registry) -> None:
         HeadingSkipsCheck,
         ImageAltMissingCheck,
         UrlHygieneCheck,
+        OpenGraphCheck,
+        DomHygieneCheck,
+        BrokenOutboundLinksCheck,
         SchemaSyntaxCheck,
         SchemaTypesCheck,
         TtfbCheck,

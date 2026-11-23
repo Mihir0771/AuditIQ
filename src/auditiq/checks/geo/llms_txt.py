@@ -10,9 +10,10 @@ class LlmsTxtCheck(BaseCheck):
     id = "GEO-LLMS-TXT"
     layer = AuditLayer.GEO_READINESS
     title = "/llms.txt Standard File for AI Agent & Search Context"
-    severity = Severity.INFO
+    severity = Severity.LOW
     effort = Effort.SMALL
     impact = 3
+    scope = "site"
     why_it_matters = (
         "The /llms.txt standard (proposed by Jeremy Howard and adopted by Anthropic, Perplexity, Cursor, etc.) "
         "provides AI agents and answer engines with a curated, token-efficient map of your site's core content "
@@ -80,8 +81,8 @@ class LlmsTxtCheck(BaseCheck):
             findings.append(
                 self.create_finding(
                     url=llms_url,
-                    status=FindingStatus.PASS,
-                    severity_override=Severity.INFO,
+                    status=FindingStatus.WARNING,
+                    severity_override=Severity.LOW,
                     evidence=[
                         {
                             "status_code": status_code or 404,
@@ -89,7 +90,9 @@ class LlmsTxtCheck(BaseCheck):
                             "note": "Optional modern standard for AI agent context discovery.",
                         }
                     ],
-                    title_override="No /llms.txt file detected (Optional modern AI standard)",
+                    title_override="Missing /llms.txt Standard File for AI Agent & Search Context",
+                    why_override="Without /llms.txt, AI crawlers and assistants lack a concise, token-efficient summary of your site architecture.",
+                    fix_override="Publish an /llms.txt markdown file at your site root linking to your primary pages.",
                 )
             )
 

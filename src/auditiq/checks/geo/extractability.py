@@ -44,8 +44,20 @@ class SemanticHtmlCheck(BaseCheck):
             )
 
             total_structural = divs + spans + semantics
-            if total_structural < 20:
+            if total_structural < 20 and semantics > 0:
                 return []
+
+            if semantics == 0:
+                return [
+                    self.create_finding(
+                        url=snap.url,
+                        status=FindingStatus.WARNING,
+                        severity_override=Severity.MEDIUM,
+                        evidence=[{"div_count": divs, "span_count": spans, "semantic_count": 0}],
+                        title_override="Page lacks semantic HTML5 landmarks (<main>, <article>, <header>, <section>)",
+                        why_override="AI web scrapers struggle to segment primary article content without semantic landmarks.",
+                    )
+                ]
 
             semantic_ratio = semantics / total_structural
 

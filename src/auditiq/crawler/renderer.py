@@ -95,11 +95,11 @@ class SelectiveRenderer:
                 page = await context.new_page()
 
                 # Navigate and wait for DOM load
-                await page.goto(url, wait_until="load", timeout=int(self.timeout_sec * 1000))
+                await page.goto(url, wait_until="domcontentloaded", timeout=int(self.timeout_sec * 1000))
 
                 # Allow a short grace period for hydration
                 with contextlib.suppress(Exception):
-                    await page.wait_for_load_state("networkidle", timeout=3000)
+                    await page.wait_for_load_state("networkidle", timeout=2000)
 
                 rendered_html = await page.content()
 
@@ -148,9 +148,9 @@ class SelectiveRenderer:
                 )
                 page = await context.new_page()
 
-                await page.goto(url, wait_until="load", timeout=int(self.timeout_sec * 1000))
+                await page.goto(url, wait_until="domcontentloaded", timeout=int(self.timeout_sec * 1000))
                 with contextlib.suppress(Exception):
-                    await page.wait_for_load_state("networkidle", timeout=3000)
+                    await page.wait_for_load_state("networkidle", timeout=2000)
 
                 rendered_html = await page.content()
 

@@ -75,6 +75,7 @@ class TrustPagesCheck(BaseCheck):
     severity = Severity.HIGH
     effort = Effort.SMALL
     impact = 4
+    scope = "site"
     why_it_matters = (
         "Clear institutional identity (About Us, Contact, Privacy Policy, Terms of Service) is a foundational "
         "trust requirement for both organic search ranking and AI knowledge graph verification."

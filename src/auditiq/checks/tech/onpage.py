@@ -344,3 +344,121 @@ class UrlHygieneCheck(BaseCheck):
                 )
             ]
         return []
+
+
+class OpenGraphCheck(BaseCheck):
+    id = "TECH-OPENGRAPH-MISSING"
+    layer = AuditLayer.TECHNICAL
+    title = "OpenGraph Social & AI Preview Metadata"
+    severity = Severity.MEDIUM
+    effort = Effort.SMALL
+    impact = 3
+    why_it_matters = (
+        "OpenGraph tags (og:title, og:description, og:image) control preview cards across social networks "
+        "and are used by AI agents to generate structured snippet previews."
+    )
+    fix_guidance = "Add <meta property='og:title'>, <meta property='og:description'>, and <meta property='og:image'> tags."
+    references = ["https://ogp.me/"]
+
+    async def run_page(self, context: PageContext) -> list[Finding]:
+        snap = context.snapshot
+        if snap.status_code != 200 or not snap.raw_html or "text/html" not in snap.content_type:
+            return []
+
+        parser = LexborHTMLParser(snap.raw_html)
+        og_title = parser.css_first("meta[property='og:title'], meta[name='og:title']")
+        og_desc = parser.css_first("meta[property='og:description'], meta[name='og:description']")
+        og_image = parser.css_first("meta[property='og:image'], meta[name='og:image']")
+
+        missing = []
+        if not og_title or not og_title.attributes.get("content"):
+            missing.append("og:title")
+        if not og_desc or not og_desc.attributes.get("content"):
+            missing.append("og:description")
+        if not og_image or not og_image.attributes.get("content"):
+            missing.append("og:image")
+
+        if missing:
+            return [
+                self.create_finding(
+                    url=snap.url,
+                    status=FindingStatus.WARNING,
+                    evidence=[{"missing_tags": missing}],
+                    title_override=f"Missing OpenGraph metadata: {', '.join(missing)}",
+                    why_override="Without complete OpenGraph tags, social platforms and AI summary cards display generic previews.",
+                )
+            ]
+        return [
+            self.create_finding(
+                url=snap.url,
+                status=FindingStatus.PASS,
+                evidence=[{"og_tags": ["og:title", "og:description", "og:image"]}],
+            )
+        ]
+
+
+class DomHygieneCheck(BaseCheck):
+    id = "TECH-DOM-HYGIENE"
+    layer = AuditLayer.TECHNICAL
+    title = "DOM Element Hygiene & Legacy Tag Deprecation"
+    severity = Severity.MEDIUM
+    effort = Effort.MEDIUM
+    impact = 4
+    why_it_matters = (
+        "Excessive DOM elements (>1,500) and obsolete layout tags (<font>, <center>, <marquee>, nested tables) "
+        "degrade browser rendering speed, crush mobile performance, and obstruct AI parser extraction."
+    )
+    fix_guidance = "Refactor legacy HTML templates to modern CSS layout and reduce total DOM element count."
+    references = ["https://web.dev/articles/dom-size-and-interactive"]
+
+    async def run_page(self, context: PageContext) -> list[Finding]:
+        snap = context.snapshot
+        if snap.status_code != 200 or not snap.raw_html or "text/html" not in snap.content_type:
+            return []
+
+        parser = LexborHTMLParser(snap.raw_html)
+        issues = []
+
+        # Count total DOM elements
+        all_elements = parser.css("*")
+        elem_count = len(all_elements)
+        if elem_count > 2500:
+            issues.append(f"Excessive DOM size ({elem_count} elements > 2,500 threshold)")
+        elif elem_count > 1500:
+            issues.append(f"High DOM size ({elem_count} elements > 1,500 threshold)")
+
+        # Check for obsolete/deprecated tags
+        deprecated_tags = ["font", "center", "marquee", "blink", "basefont", "applet"]
+        found_deprecated = []
+        for tag in deprecated_tags:
+            nodes = parser.css(tag)
+            if nodes:
+                found_deprecated.append(f"<{tag}> ({len(nodes)})")
+
+        if found_deprecated:
+            issues.append(f"Deprecated HTML tags in use: {', '.join(found_deprecated)}")
+
+        # Check for nested layout tables (table inside table)
+        nested_tables = parser.css("table table")
+        if len(nested_tables) > 3:
+            issues.append(f"Legacy nested table layout detected ({len(nested_tables)} nested tables)")
+
+        if issues:
+            sev = Severity.HIGH if (elem_count > 2500 or found_deprecated) else Severity.MEDIUM
+            return [
+                self.create_finding(
+                    url=snap.url,
+                    status=FindingStatus.FAIL if sev == Severity.HIGH else FindingStatus.WARNING,
+                    severity_override=sev,
+                    evidence=[{"issues": issues, "total_elements": elem_count}],
+                    title_override=f"DOM Clutter & Legacy Structure Detected ({len(issues)} hygiene issues)",
+                    why_override="Obsolete HTML structures slow down rendering and impede AI web crawlers.",
+                )
+            ]
+        return [
+            self.create_finding(
+                url=snap.url,
+                status=FindingStatus.PASS,
+                evidence=[{"total_elements": elem_count, "deprecated_tags": 0}],
+            )
+        ]

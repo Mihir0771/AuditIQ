@@ -43,6 +43,7 @@ class BaseCheck(ABC):
     why_it_matters: str
     fix_guidance: str
     references: list[str] = []
+    scope: str = "page"  # "page" or "site"
 
     def create_finding(
         self,
