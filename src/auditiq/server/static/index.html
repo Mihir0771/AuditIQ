@@ -1084,7 +1084,10 @@
           <div class="spinner-ring"></div>
           <span id="hudStatus">Evaluating target domain...</span>
         </div>
-        <div style="font-weight: 700; color: var(--apple-cyan); font-family: var(--font-mono);" id="hudPercent">0%</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="btn-glass" style="font-size: 11px; padding: 4px 10px; color: var(--apple-rose); border-color: rgba(255, 69, 58, 0.3);" onclick="cancelCurrentAudit()">Cancel Audit</button>
+          <div style="font-weight: 700; color: var(--apple-cyan); font-family: var(--font-mono);" id="hudPercent">0%</div>
+        </div>
       </div>
       <div class="progress-track">
         <div class="progress-stream-fill" id="hudFill"></div>
@@ -1115,6 +1118,17 @@
 
         <!-- 4-Layer Scores Quad -->
         <div class="layer-quad-grid" id="layerQuadContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Crawl Architecture & Domain Topology -->
+      <div class="geo-live-section" id="crawlSummarySection" style="margin-bottom: 24px;">
+        <div class="section-eyebrow">
+          <svg width="22" height="22" fill="none" stroke="var(--apple-emerald)" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+          <h3>Crawl Topology & Domain Intelligence</h3>
+        </div>
+        <div class="stats-triad" id="crawlStatsContainer">
           <!-- Populated dynamically -->
         </div>
       </div>
@@ -1168,6 +1182,14 @@
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       Executive PDF
     </button>
+    <button class="btn-glass" onclick="downloadBundle()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      All Artifacts (.ZIP)
+    </button>
+    <button class="btn-glass" onclick="openBadgeModal()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+      Embed Badge
+    </button>
     <button class="btn-glass" onclick="downloadCsv()">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M4 14h16M9 4v16M14 4v16"/></svg>
       CSV Findings
@@ -1187,6 +1209,33 @@
       </div>
       <div id="doctorContent" style="font-size: 14px; line-height: 1.6; color: var(--text-secondary);">
         Loading diagnostics...
+      </div>
+    </div>
+  </div>
+
+  <!-- Badge Embed Modal -->
+  <div class="modal-overlay" id="badgeModal">
+    <div class="modal-glass" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 700;">Embed AuditIQ Score Badge</h3>
+        <button class="modal-close" onclick="closeModal('badgeModal')">×</button>
+      </div>
+      <div style="text-align: center; margin: 20px 0;">
+        <img id="badgePreviewImg" src="" alt="AuditIQ Badge Preview" style="height: 32px;" />
+      </div>
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-tertiary);">MARKDOWN SNIPPET</label>
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <input type="text" id="badgeMarkdown" readonly class="search-filter" style="width: 100%; font-family: var(--font-mono); font-size: 12px;" />
+          <button class="btn-glass" onclick="copyBadgeSnippet('badgeMarkdown')">Copy</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-tertiary);">HTML EMBED SNIPPET</label>
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <input type="text" id="badgeHtml" readonly class="search-filter" style="width: 100%; font-family: var(--font-mono); font-size: 12px;" />
+          <button class="btn-glass" onclick="copyBadgeSnippet('badgeHtml')">Copy</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1344,6 +1393,29 @@
         quad.appendChild(card);
       }
 
+      // 2.5 Crawl Topology Card
+      const crawl = record.crawl_summary || {};
+      const crawlBox = document.getElementById('crawlStatsContainer');
+      if (crawlBox) {
+        crawlBox.innerHTML = `
+          <div class="stat-box">
+            <div class="stat-label">CRAWLED PAGES</div>
+            <div class="stat-number">${crawl.total_pages || 1}</div>
+            <div class="stat-footnote">Discovered internal documents</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">CRAWL RUNTIME</div>
+            <div class="stat-number">${(crawl.duration_sec || 0).toFixed(1)}s</div>
+            <div class="stat-footnote">Polite headless crawl latency</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">SITEMAP ENTRIES</div>
+            <div class="stat-number">${crawl.sitemap_urls_count || 0}</div>
+            <div class="stat-footnote">Canonical indexing targets</div>
+          </div>
+        `;
+      }
+
       // 3. GEO & Live AI Stats
       const liveFindings = record.findings.filter(f => f.layer === 'live_visibility' && f.status !== 'not_measured');
       const visBox = document.getElementById('visStatsContainer');
@@ -1492,6 +1564,45 @@
       if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/report?format=json`, '_blank');
     }
 
+    function downloadBundle() {
+      if (currentAuditId) window.open(`/api/v1/audits/${currentAuditId}/bundle.zip`, '_blank');
+    }
+
+    function openBadgeModal() {
+      if (!currentAuditId) return;
+      const origin = window.location.origin;
+      const badgeUrl = `${origin}/api/v1/audits/${currentAuditId}/badge.svg`;
+      document.getElementById('badgePreviewImg').src = badgeUrl;
+      document.getElementById('badgeMarkdown').value = `[![AuditIQ Score](${badgeUrl})](${origin})`;
+      document.getElementById('badgeHtml').value = `<a href="${origin}"><img src="${badgeUrl}" alt="AuditIQ Score Badge" /></a>`;
+      document.getElementById('badgeModal').style.display = 'flex';
+    }
+
+    function copyBadgeSnippet(id) {
+      const el = document.getElementById(id);
+      el.select();
+      navigator.clipboard.writeText(el.value);
+      alert('Copied badge snippet to clipboard!');
+    }
+
+    async function cancelCurrentAudit() {
+      if (!currentAuditId) return;
+      if (!confirm('Are you sure you want to cancel the current in-progress audit?')) return;
+      try {
+        const resp = await fetch(`/api/v1/audits/${currentAuditId}/cancel`, { method: 'POST' });
+        const data = await resp.json();
+        if (resp.ok) {
+          document.getElementById('hudStatus').innerText = 'Audit cancelled by user.';
+          document.getElementById('hudTicker').innerText = 'Audit job was halted successfully.';
+          document.getElementById('launchBtn').disabled = false;
+        } else {
+          alert('Cancellation failed: ' + (data.detail || 'Job already finished'));
+        }
+      } catch (err) {
+        alert('Cancellation error: ' + err);
+      }
+    }
+
     async function openDoctorModal() {
       document.getElementById('doctorModal').style.display = 'flex';
       const resp = await fetch('/api/v1/system/doctor');
@@ -1517,9 +1628,15 @@
       }
 
       document.getElementById('historyContent').innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 12px; color: var(--text-secondary);">Select 2 runs to analyze regressions & fixes:</span>
+          <button class="btn-glass" style="font-size: 11px; padding: 4px 12px;" onclick="compareSelectedAudits()">Compare 2 Selected Runs</button>
+        </div>
+        <div id="compareResultContainer" style="display: none; margin-bottom: 16px; padding: 12px 16px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);"></div>
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
           <thead>
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-tertiary);">
+              <th style="padding: 8px 4px; width: 32px;">Pick</th>
               <th style="padding: 8px 4px;">Audit ID</th>
               <th style="padding: 8px 4px;">URL</th>
               <th style="padding: 8px 4px;">Grade</th>
@@ -1530,6 +1647,7 @@
           <tbody>
             ${audits.map(a => `
               <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 8px 4px;"><input type="checkbox" class="audit-check" value="${a.id}" onchange="limitCheckboxes(this)" /></td>
                 <td style="padding: 8px 4px;"><code>${a.id}</code></td>
                 <td style="padding: 8px 4px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.url}</td>
                 <td style="padding: 8px 4px;"><strong>${a.grade || '-'}</strong></td>
@@ -1542,6 +1660,50 @@
           </tbody>
         </table>
       `;
+    }
+
+    function limitCheckboxes(checkbox) {
+      const checked = document.querySelectorAll('.audit-check:checked');
+      if (checked.length > 2) {
+        checkbox.checked = false;
+        alert('You can compare exactly 2 audits (baseline vs current).');
+      }
+    }
+
+    async function compareSelectedAudits() {
+      const checked = Array.from(document.querySelectorAll('.audit-check:checked')).map(cb => cb.value);
+      if (checked.length !== 2) {
+        alert('Please check exactly 2 audits to compare.');
+        return;
+      }
+      const [baselineId, currentId] = checked;
+      const box = document.getElementById('compareResultContainer');
+      box.style.display = 'block';
+      box.innerHTML = `<span style="color: var(--apple-cyan);">Comparing audit ${baselineId} with ${currentId}...</span>`;
+
+      try {
+        const resp = await fetch('/api/v1/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ baseline_id: baselineId, current_id: currentId })
+        });
+        const cmp = await resp.json();
+        const deltaColor = cmp.score_delta >= 0 ? 'var(--apple-emerald)' : 'var(--apple-rose)';
+        const sign = cmp.score_delta >= 0 ? '+' : '';
+
+        box.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong>Comparison: ${cmp.baseline_id} → ${cmp.current_id}</strong>
+            <span style="font-weight: 800; font-size: 15px; color: ${deltaColor};">${sign}${cmp.score_delta.toFixed(1)} pts (${cmp.baseline_grade} → ${cmp.current_grade})</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+            <div>✓ <strong>${cmp.resolved_count} Resolved Issue(s):</strong> ${cmp.resolved_checks.join(', ') || 'None'}</div>
+            <div style="color: ${cmp.regressed_count > 0 ? 'var(--apple-rose)' : 'inherit'};">⚠ <strong>${cmp.regressed_count} Regressed Issue(s):</strong> ${cmp.regressed_checks.join(', ') || 'None'}</div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = `<span style="color: var(--apple-rose);">Comparison failed: ${err}</span>`;
+      }
     }
 
     async function loadPastAudit(id) {

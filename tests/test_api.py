@@ -101,3 +101,23 @@ def test_compare_endpoint(client: TestClient) -> None:
     assert cmp_data["current_id"] == "job_b"
     assert cmp_data["resolved_count"] == 1
     assert cmp_data["score_delta"] > 0
+
+
+def test_badge_endpoint(client: TestClient) -> None:
+    resp = client.get("/api/v1/audits/job_a/badge.svg")
+    assert resp.status_code == 200
+    assert "image/svg+xml" in resp.headers["content-type"]
+    assert "AuditIQ" in resp.text
+    assert "<svg" in resp.text
+
+
+def test_bundle_endpoint(client: TestClient) -> None:
+    resp = client.get("/api/v1/audits/job_a/bundle.zip")
+    assert resp.status_code == 200
+    assert "application/zip" in resp.headers["content-type"]
+    assert len(resp.content) > 100
+
+
+def test_cancel_nonexistent_or_done_job(client: TestClient) -> None:
+    resp = client.post("/api/v1/audits/nonexistent/cancel")
+    assert resp.status_code == 400

@@ -8,7 +8,7 @@ from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -20,7 +20,7 @@ from auditiq.checks.live import register_live_checks
 from auditiq.checks.registry import default_registry
 from auditiq.checks.tech import register_tech_checks
 from auditiq.models.finding import AuditLayer
-from auditiq.reports.pdf import generate_pdf_report
+from auditiq.reports.pdf import generate_pdf_report_async
 from auditiq.scoring.regression import compare_audits
 from auditiq.server.jobs import job_manager
 
@@ -63,11 +63,11 @@ async def system_doctor() -> dict[str, Any]:
 
     playwright_ok = False
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.async_api import async_playwright
 
-        with sync_playwright() as p:
-            b = p.chromium.launch(headless=True)
-            b.close()
+        async with async_playwright() as p:
+            b = await p.chromium.launch(headless=True)
+            await b.close()
         playwright_ok = True
     except Exception:
         playwright_ok = False
@@ -178,9 +178,21 @@ async def stream_audit_progress(job_id: str) -> StreamingResponse:
     )
 
 
+@app.post("/api/v1/audits/{job_id}/cancel")
+async def cancel_audit_endpoint(job_id: str) -> dict[str, Any]:
+    """Cancels an in-progress background audit job."""
+    success = job_manager.cancel_job(job_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit cannot be cancelled (either not found or already finished)",
+        )
+    return {"status": "cancelled", "job_id": job_id}
+
+
 @app.get("/api/v1/audits/{job_id}/report")
 async def get_audit_report(job_id: str, format: str = "html") -> FileResponse:
-    """Downloads or views the generated report (HTML or PDF)."""
+    """Downloads or views the generated report (HTML, PDF, JSON, or CSV)."""
     job = job_manager.get_job(job_id)
     if not job or not job.record:
         raise HTTPException(status_code=404, detail="Audit record not found or not completed")
@@ -188,7 +200,7 @@ async def get_audit_report(job_id: str, format: str = "html") -> FileResponse:
     if format.lower() == "pdf":
         pdf_path = job_manager.reports_dir / f"report_{job_id}.pdf"
         if not pdf_path.exists():
-            generate_pdf_report(job.record, output_path=pdf_path)
+            await generate_pdf_report_async(job.record, output_path=pdf_path)
         return FileResponse(
             pdf_path,
             media_type="application/pdf",
@@ -226,6 +238,94 @@ async def get_audit_report(job_id: str, format: str = "html") -> FileResponse:
         generate_html_report(job.record, output_path=html_path)
 
     return FileResponse(html_path, media_type="text/html")
+
+
+@app.get("/api/v1/audits/{job_id}/badge.svg", response_class=Response)
+async def get_audit_badge(job_id: str) -> Response:
+    """Generates an embeddable SVG badge indicating AuditIQ score and grade."""
+    job = job_manager.get_job(job_id)
+    if not job or not job.record or not job.record.score_card:
+        raise HTTPException(status_code=404, detail="Audit record not found or not completed")
+
+    sc = job.record.score_card
+    grade = sc.letter_grade
+    score = round(sc.composite_score, 1)
+
+    color_map = {
+        "A": "#30D158",
+        "B": "#0A84FF",
+        "C": "#64D2FF",
+        "D": "#FF9F0A",
+        "F": "#FF453A",
+    }
+    badge_color = color_map.get(grade, "#8E8E93")
+
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="168" height="28" role="img" aria-label="AuditIQ: Grade {grade} ({score}/100)">
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#fff" stop-opacity=".12"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r">
+    <rect width="168" height="28" rx="6" fill="#fff"/>
+  </clipPath>
+  <g clip-path="url(#r)">
+    <rect width="84" height="28" fill="#1C1C1E"/>
+    <rect x="84" width="84" height="28" fill="{badge_color}"/>
+    <rect width="168" height="28" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" text-rendering="geometricPrecision" font-size="12">
+    <text x="42" y="18" font-weight="700" fill="#fff">AuditIQ</text>
+    <text x="126" y="18" font-weight="800" fill="#fff">Grade {grade} · {score}</text>
+  </g>
+</svg>"""
+    return Response(content=svg, media_type="image/svg+xml")
+
+
+@app.get("/api/v1/audits/{job_id}/bundle.zip")
+async def get_audit_bundle(job_id: str) -> FileResponse:
+    """Packages HTML, PDF, CSV, and JSON audit artifacts into a single downloadable ZIP archive."""
+    import zipfile
+
+    job = job_manager.get_job(job_id)
+    if not job or not job.record:
+        raise HTTPException(status_code=404, detail="Audit record not found or not completed")
+
+    zip_path = job_manager.reports_dir / f"bundle_{job_id}.zip"
+    html_path = job_manager.reports_dir / f"report_{job_id}.html"
+    pdf_path = job_manager.reports_dir / f"report_{job_id}.pdf"
+    csv_path = job_manager.reports_dir / f"findings_{job_id}.csv"
+    json_path = job_manager.reports_dir / f"audit_{job_id}.json"
+
+    if not html_path.exists():
+        from auditiq.reports.html import generate_html_report
+
+        generate_html_report(job.record, output_path=html_path)
+    if not pdf_path.exists():
+        await generate_pdf_report_async(job.record, output_path=pdf_path)
+    if not csv_path.exists():
+        from auditiq.reports.exporters import export_csv
+
+        export_csv(job.record, output_path=csv_path)
+    if not json_path.exists():
+        from auditiq.reports.exporters import export_json
+
+        export_json(job.record, output_path=json_path)
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        if html_path.exists():
+            zf.write(html_path, arcname=f"report_{job_id}.html")
+        if pdf_path.exists():
+            zf.write(pdf_path, arcname=f"report_{job_id}.pdf")
+        if csv_path.exists():
+            zf.write(csv_path, arcname=f"findings_{job_id}.csv")
+        if json_path.exists():
+            zf.write(json_path, arcname=f"audit_{job_id}.json")
+
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=f"auditiq_bundle_{job_id}.zip",
+    )
 
 
 @app.post("/api/v1/compare")

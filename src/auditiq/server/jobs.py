@@ -50,6 +50,7 @@ class JobManager:
         self._concurrency_sem = asyncio.Semaphore(2)
         self._init_db()
         self.jobs: dict[str, AuditJob] = {}
+        self.active_tasks: dict[str, asyncio.Task[None]] = {}
         self.event_queues: dict[str, list[asyncio.Queue[dict[str, Any]]]] = {}
         self._load_persisted_jobs()
 
@@ -262,7 +263,7 @@ class JobManager:
             conn.commit()
 
         # Launch background task
-        asyncio.create_task(
+        task = asyncio.create_task(
             self._execute_audit(
                 job_id=job_id,
                 target_url=target_url,
@@ -274,7 +275,37 @@ class JobManager:
                 mock_ai=mock_ai,
             )
         )
+        self.active_tasks[job_id] = task
+
+        def _cleanup_task(t: asyncio.Task[None]) -> None:
+            self.active_tasks.pop(job_id, None)
+
+        task.add_done_callback(_cleanup_task)
         return job_id
+
+    def cancel_job(self, job_id: str) -> bool:
+        """Cancels an active audit background task."""
+        task = self.active_tasks.get(job_id)
+        if task and not task.done():
+            task.cancel()
+            job = self.jobs.get(job_id)
+            if job:
+                job.status = AuditStatus.FAILED
+                job.message = "Audit cancelled by user"
+                job.error = "Audit cancelled by user"
+            asyncio.create_task(
+                self.broadcast(
+                    job_id,
+                    {
+                        "status": AuditStatus.FAILED,
+                        "progress_pct": 100,
+                        "message": "Audit cancelled by user",
+                        "error": "Cancelled",
+                    },
+                )
+            )
+            return True
+        return False
 
     async def _execute_audit(
         self,
