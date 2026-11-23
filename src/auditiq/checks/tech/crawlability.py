@@ -6,6 +6,53 @@ from auditiq.checks.base import BaseCheck, PageContext, SiteContext
 from auditiq.models.finding import AuditLayer, Effort, Finding, FindingStatus, Severity
 
 
+class HostReachabilityCheck(BaseCheck):
+    id = "TECH-HOST-REACHABLE"
+    layer = AuditLayer.TECHNICAL
+    title = "Target Website Reachability & HTTP Availability"
+    severity = Severity.CRITICAL
+    effort = Effort.LARGE
+    impact = 5
+    why_it_matters = (
+        "A website must be reachable and return valid HTTP 200 OK responses to be crawled, indexed, "
+        "and cited by search engines and generative AI answer engines."
+    )
+    fix_guidance = "Resolve DNS resolution failures, server crashes, connection timeouts, or SSL certificate misconfigurations."
+    references = ["https://developers.google.com/search/docs/crawling-indexing/http-network-errors"]
+
+    async def run_site(self, context: SiteContext) -> list[Finding]:
+        findings: list[Finding] = []
+        start_url = context.crawl_result.start_url
+        root_snap = context.crawl_result.pages.get(start_url)
+        if not root_snap:
+            alt = start_url.rstrip("/") if start_url.endswith("/") else start_url + "/"
+            root_snap = context.crawl_result.pages.get(alt)
+
+        if not root_snap or root_snap.status_code >= 400 or root_snap.status_code == 0 or root_snap.error:
+            status_code = root_snap.status_code if root_snap else 0
+            err = root_snap.error if root_snap else "No response received"
+            findings.append(
+                self.create_finding(
+                    url=start_url,
+                    status=FindingStatus.FAIL,
+                    severity_override=Severity.CRITICAL,
+                    evidence=[{"status_code": status_code, "error": err}],
+                    title_override=f"Target Host Unreachable (HTTP {status_code}: {err})",
+                    why_override="Search and AI crawlers cannot index or cite this website because the start URL could not be reached.",
+                    fix_override="Verify your DNS, hosting server, firewall, and reverse proxy settings.",
+                )
+            )
+        else:
+            findings.append(
+                self.create_finding(
+                    url=start_url,
+                    status=FindingStatus.PASS,
+                    evidence=[{"status_code": root_snap.status_code, "ttfb_ms": root_snap.ttfb_ms}],
+                )
+            )
+        return findings
+
+
 class RobotsPresenceCheck(BaseCheck):
     id = "TECH-ROBOTS-PRESENCE"
     layer = AuditLayer.TECHNICAL
@@ -210,23 +257,25 @@ class Status4xx5xxCheck(BaseCheck):
     async def run_page(self, context: PageContext) -> list[Finding]:
         findings = []
         snap = context.snapshot
-        if snap.status_code >= 400:
+        if snap.status_code >= 400 or snap.status_code == 0 or snap.error:
             inlinks = list(context.site.link_graph.inlinks.get(snap.url, set()))
+            status_desc = f"HTTP {snap.status_code}" if snap.status_code > 0 else f"Error: {snap.error or 'Failed connection'}"
             findings.append(
                 self.create_finding(
                     url=snap.url,
                     status=FindingStatus.FAIL,
                     severity_override=Severity.CRITICAL
-                    if snap.status_code >= 500
+                    if (snap.status_code in (0, 500, 502, 503, 504) or snap.error)
                     else Severity.HIGH,
                     evidence=[
                         {
                             "status_code": snap.status_code,
+                            "error": snap.error,
                             "referring_pages": inlinks[:5],
                             "inlinks_count": len(inlinks),
                         }
                     ],
-                    title_override=f"HTTP {snap.status_code} Error on {snap.url}",
+                    title_override=f"Broken Internal Link ({status_desc}) on {snap.url}",
                 )
             )
         return findings

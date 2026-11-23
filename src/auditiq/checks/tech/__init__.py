@@ -5,6 +5,7 @@ from auditiq.checks.tech.crawlability import (
     CanonicalConflictCheck,
     CanonicalMissingCheck,
     CrawlDepthCheck,
+    HostReachabilityCheck,
     HttpConsistencyCheck,
     NoindexAccidentalCheck,
     OrphanPagesCheck,
@@ -38,6 +39,7 @@ from auditiq.checks.tech.schema import SchemaSyntaxCheck, SchemaTypesCheck
 def register_tech_checks(registry: CheckRegistry = default_registry) -> None:
     """Registers all Technical SEO (TECH-*) checks into the provided registry."""
     checks = [
+        HostReachabilityCheck,
         RobotsPresenceCheck,
         RobotsBlockingCheck,
         SitemapPresenceCheck,

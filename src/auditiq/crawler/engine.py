@@ -83,7 +83,6 @@ class HttpCrawler:
         headers = {
             "User-Agent": self.user_agent,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br",
         }
 
         async def _validate_redirect_safety(response: httpx.Response) -> None:
@@ -113,69 +112,71 @@ class HttpCrawler:
                 # 3. Fetch & parse Sitemaps
                 await self._discover_sitemaps(client)
 
-            # 4. Seed queue with start_url and sitemap URLs (depth 1 for sitemaps)
-            self._queue.append((self.start_url, 0))
-            for s_url in list(self.sitemap_urls)[: self.max_pages]:
-                if s_url not in [u for u, _ in self._queue]:
-                    self._queue.append((s_url, 1))
+                # 4. Seed queue with start_url and sitemap URLs (depth 1 for sitemaps)
+                self._queue.append((self.start_url, 0))
+                for s_url in list(self.sitemap_urls)[: self.max_pages]:
+                    if s_url not in [u for u, _ in self._queue]:
+                        self._queue.append((s_url, 1))
 
-            # 4. Asynchronous BFS crawl loop
-            rendered_count = 0
-            while self._queue and len(self.snapshots) < self.max_pages:
-                batch_tasks: list[Coroutine[Any, Any, PageSnapshot]] = []
-                # Drain next batch up to concurrency limit
-                while (
-                    self._queue
-                    and len(batch_tasks) < self.concurrency
-                    and len(self.snapshots) + len(batch_tasks) < self.max_pages
-                ):
-                    url, depth = self._queue.pop(0)
-                    if url in self._visited or depth > self.max_depth:
-                        continue
-                    self._visited.add(url)
-
-                    # Check robots.txt rules
-                    if (
-                        self.respect_robots
-                        and self.robots_parser
-                        and not self.robots_parser.is_allowed(self.user_agent, url)
+                # 5. Asynchronous BFS crawl loop
+                rendered_count = 0
+                while self._queue and len(self.snapshots) < self.max_pages:
+                    batch_tasks: list[Coroutine[Any, Any, PageSnapshot]] = []
+                    # Drain next batch up to concurrency limit
+                    while (
+                        self._queue
+                        and len(batch_tasks) < self.concurrency
+                        and len(self.snapshots) + len(batch_tasks) < self.max_pages
                     ):
-                        logger.info("Skipping robots-disallowed URL: %s", url)
-                        self.snapshots[url] = PageSnapshot(
-                            url=url,
-                            status_code=403,
-                            depth=depth,
-                            error="Blocked by robots.txt",
+                        url, depth = self._queue.pop(0)
+                        if url in self._visited or depth > self.max_depth:
+                            continue
+                        self._visited.add(url)
+
+                        # Check robots.txt rules
+                        if (
+                            self.respect_robots
+                            and self.robots_parser
+                            and not self.robots_parser.is_allowed(self.user_agent, url)
+                        ):
+                            logger.info("Skipping robots-disallowed URL: %s", url)
+                            self.snapshots[url] = PageSnapshot(
+                                url=url,
+                                status_code=403,
+                                depth=depth,
+                                error="Blocked by robots.txt",
+                            )
+                            continue
+
+                        # Determine if this page should be rendered in headless browser
+                        should_render = rendered_count < self.render_sample
+                        if should_render:
+                            rendered_count += 1
+
+                        batch_tasks.append(
+                            self._fetch_and_process_page(
+                                client, url, depth, should_render, screenshot_dir
+                            )
                         )
-                        continue
 
-                    # Determine if this page should be rendered in headless browser
-                    should_render = rendered_count < self.render_sample
-                    if should_render:
-                        rendered_count += 1
+                    if not batch_tasks:
+                        break
 
-                    batch_tasks.append(
-                        self._fetch_and_process_page(
-                            client, url, depth, should_render, screenshot_dir
-                        )
-                    )
+                    results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+                    for res in results:
+                        if isinstance(res, PageSnapshot):
+                            self.snapshots[res.url] = res
+                            if progress_callback:
+                                progress_callback(res.url, len(self.snapshots), self.max_pages)
+                        elif isinstance(res, Exception):
+                            logger.error("Page processing failed with exception: %s", res)
 
-                if not batch_tasks:
-                    break
-
-                results = await asyncio.gather(*batch_tasks, return_exceptions=True)
-                for res in results:
-                    if isinstance(res, PageSnapshot):
-                        self.snapshots[res.url] = res
-                        if progress_callback:
-                            progress_callback(res.url, len(self.snapshots), self.max_pages)
-
-            # 5. Compute graph metrics (depths and orphan pages)
-            self.link_graph.compute_depths()
-            for url, snap in self.snapshots.items():
-                snap.inlinks_count = self.link_graph.get_inlinks_count(url)
-                if url in self.link_graph.depths:
-                    snap.depth = self.link_graph.depths[url]
+                # 6. Compute graph metrics (depths and orphan pages)
+                self.link_graph.compute_depths()
+                for url, snap in self.snapshots.items():
+                    snap.inlinks_count = self.link_graph.get_inlinks_count(url)
+                    if url in self.link_graph.depths:
+                        snap.depth = self.link_graph.depths[url]
         finally:
             await self._renderer.stop()
 
